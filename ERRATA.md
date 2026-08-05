@@ -102,6 +102,16 @@ signature. This changes compilation only. The package source-tarball
 installation and both clean native build variants compile the generator
 as the regression check.
 
+### E-008: Debug macro header dependency
+
+`common/Debug.hpp` uses `BOOST_CURRENT_FUNCTION` but did not include
+`<boost/current_function.hpp>`, its defining header. Imported include
+ordering usually masked that dependency, but a package build can include
+it before a Boost exception header and then fails to compile. Rdragmap
+includes the defining header directly. This changes compilation only.
+The source-tarball package check and clean native builds compile the
+affected workflow objects as the regression check.
+
 ## ALT-contig limitation
 
 The README’s `--ht-mask-bed` path is implemented, not a no-op. During

@@ -24,6 +24,7 @@
 #include <typeinfo>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/current_function.hpp>
 //#include <boost/date_time.hpp>
 #include <boost/io/ios_state.hpp>
 
