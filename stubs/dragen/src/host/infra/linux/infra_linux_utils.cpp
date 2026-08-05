@@ -57,13 +57,13 @@ int GetDmiValue(const std::string& label, std::string& value)
   FILE* dmiOutput = popen("sudo /usr/sbin/dmidecode -t 2", "r");
   if (dmiOutput == NULL) {
     perror("dmidecode popen");
-    pclose(dmiOutput);
     return -1;
   }
 
   // get a line and process
   char*  line     = NULL;
   size_t linesize = 0;
+  int    status   = 0;
   while (getline(&line, &linesize, dmiOutput) > 0) {
     if (linesize > 0) {
       std::string s(line);
@@ -74,7 +74,8 @@ int GetDmiValue(const std::string& label, std::string& value)
         // label found
         if (!value.empty()) {
           // duplicate value
-          return -2;
+          status = -2;
+          break;
         }
         // search for value after ':'
         const char* ptr = std::strchr(line, ':');
@@ -97,8 +98,9 @@ int GetDmiValue(const std::string& label, std::string& value)
     linesize = 0;
   }
 
+  free(line);
   pclose(dmiOutput);
-  return value.empty() ? -3 : 0;
+  return status ? status : (value.empty() ? -3 : 0);
 }
 
 //------------------------------------------------------------------------alain

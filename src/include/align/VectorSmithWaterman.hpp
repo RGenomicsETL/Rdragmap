@@ -16,6 +16,7 @@
 #define ALIGN_VECTOR_SMITH_WATERMAN_HPP
 
 #include "align/SimilarityScores.hpp"
+#include "common/CpuFeatures.hpp"
 #include "common/DragenLogger.hpp"
 #include "ssw/ssw.hpp"
 
@@ -34,8 +35,16 @@ public:
       gapInit_(gapInit),
       gapExtend_(gapExtend),
       unclipScore_(unclipScore),
-      profile_({NULL, NULL}),
-      profileRev_({NULL, NULL})
+#if defined(DRAGMAP_HAVE_AVX2) && DRAGMAP_HAVE_AVX2
+      useAvx2_(common::cpuSupportsAvx2()),
+#endif
+      profileSse2_({NULL, NULL}),
+      profileRevSse2_({NULL, NULL})
+#if defined(DRAGMAP_HAVE_AVX2) && DRAGMAP_HAVE_AVX2
+      ,
+      profileAvx2_({NULL, NULL}),
+      profileRevAvx2_({NULL, NULL})
+#endif
   {
     sswAlphabetSize_ = 16;
     sswScoringMat_   = (int8_t*)calloc(sswAlphabetSize_ * sswAlphabetSize_, sizeof(int8_t));
@@ -96,12 +105,14 @@ private:
   int                                       sswAlphabetSize_;
   int32_t                                   sswBias_;
   std::array<int, 2>                        querySize_;
-#ifdef __AVX2__
-  std::array<s_profile_avx2*, 2> profile_;
-  std::array<s_profile_avx2*, 2> profileRev_;
-#else
-  std::array<s_profile_sse2*, 2> profile_;
-  std::array<s_profile_sse2*, 2> profileRev_;
+#if defined(DRAGMAP_HAVE_AVX2) && DRAGMAP_HAVE_AVX2
+  const bool                                useAvx2_;
+#endif
+  std::array<s_profile_sse2*, 2>            profileSse2_;
+  std::array<s_profile_sse2*, 2>            profileRevSse2_;
+#if defined(DRAGMAP_HAVE_AVX2) && DRAGMAP_HAVE_AVX2
+  std::array<s_profile_avx2*, 2>            profileAvx2_;
+  std::array<s_profile_avx2*, 2>            profileRevAvx2_;
 #endif
 };
 

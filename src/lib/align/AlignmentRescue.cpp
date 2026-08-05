@@ -12,7 +12,6 @@
  **
  **/
 
-#include <emmintrin.h>
 #include <boost/assert.hpp>
 #include <iomanip>
 

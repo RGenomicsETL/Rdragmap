@@ -22,16 +22,20 @@ namespace align {
 
 void VectorSmithWaterman::destroyReadContext(int readIdx)
 {
-#ifdef __AVX2__
-  init_destroy_avx2(profile_[readIdx]);
-  init_destroy_avx2(profileRev_[readIdx]);
-#else
-  init_destroy_sse2(profile_[readIdx]);
-  init_destroy_sse2(profileRev_[readIdx]);
+#if defined(DRAGMAP_HAVE_AVX2) && DRAGMAP_HAVE_AVX2
+  if (useAvx2_) {
+    init_destroy_avx2(profileAvx2_[readIdx]);
+    init_destroy_avx2(profileRevAvx2_[readIdx]);
+    profileAvx2_[readIdx]    = NULL;
+    profileRevAvx2_[readIdx] = NULL;
+    return;
+  }
 #endif
 
-  profile_[readIdx]    = NULL;
-  profileRev_[readIdx] = NULL;
+  init_destroy_sse2(profileSse2_[readIdx]);
+  init_destroy_sse2(profileRevSse2_[readIdx]);
+  profileSse2_[readIdx]    = NULL;
+  profileRevSse2_[readIdx] = NULL;
 }
 
 void VectorSmithWaterman::initReadContext(
@@ -52,19 +56,21 @@ void VectorSmithWaterman::initReadContext(
   const int8_t* queryBeginInt    = (int8_t*)query_[readIdx].data();
   const int8_t* queryRevBeginInt = (int8_t*)queryRev_[readIdx].data();
 
-#ifdef __AVX2__
-  // AVX2 variant initializes profile only for 8-bit scoring (last argument 0),
-  // 16-bit scoring is initialized only when needed
-  profile_[readIdx] =
-      ssw_init_avx2(queryBeginInt, querySize_[readIdx], sswScoringMat_, sswAlphabetSize_, sswBias_, 0);
-  profileRev_[readIdx] =
-      ssw_init_avx2(queryRevBeginInt, querySize_[readIdx], sswScoringMat_, sswAlphabetSize_, sswBias_, 0);
-#else
-  profile_[readIdx] =
-      ssw_init_sse2(queryBeginInt, querySize_[readIdx], sswScoringMat_, sswAlphabetSize_, sswBias_, 2);
-  profileRev_[readIdx] =
-      ssw_init_sse2(queryRevBeginInt, querySize_[readIdx], sswScoringMat_, sswAlphabetSize_, sswBias_, 2);
+#if defined(DRAGMAP_HAVE_AVX2) && DRAGMAP_HAVE_AVX2
+  if (useAvx2_) {
+    // AVX2 initializes 8-bit scoring; 16-bit scoring is created only if needed.
+    profileAvx2_[readIdx] =
+        ssw_init_avx2(queryBeginInt, querySize_[readIdx], sswScoringMat_, sswAlphabetSize_, sswBias_, 0);
+    profileRevAvx2_[readIdx] =
+        ssw_init_avx2(queryRevBeginInt, querySize_[readIdx], sswScoringMat_, sswAlphabetSize_, sswBias_, 0);
+    return;
+  }
 #endif
+
+  profileSse2_[readIdx] =
+      ssw_init_sse2(queryBeginInt, querySize_[readIdx], sswScoringMat_, sswAlphabetSize_, sswBias_, 2);
+  profileRevSse2_[readIdx] =
+      ssw_init_sse2(queryRevBeginInt, querySize_[readIdx], sswScoringMat_, sswAlphabetSize_, sswBias_, 2);
 }
 
 // returns alignment score
@@ -86,21 +92,9 @@ uint16_t VectorSmithWaterman::align(
   // const int querySize = std::distance(queryBeginInt, queryEndInt);
   const int dbSize = std::distance(databaseBeginInt, databaseEndInt);
 
-#ifdef __AVX2__
-  s_profile_avx2* profile;
-#else
-  s_profile_sse2* profile;
-#endif
-
   // use the already built profile
   int querySize = querySize_[readIdx];
-  if (reverseQuery) {
-    profile = profileRev_[readIdx];
-  } else {
-    profile = profile_[readIdx];
-  }
-
-  s_align* result;
+  s_align* result = NULL;
 
   uint8_t flag = 0;
   //flag |= 0x08;  // report ref position
@@ -111,13 +105,20 @@ uint16_t VectorSmithWaterman::align(
   int32_t  filterd = 0;
   int32_t  maskLen = querySize / 2;
 
-  result =
-#ifdef __AVX2__
-      ssw_align_avx2(
-#else
-      ssw_align_sse2(
+#if defined(DRAGMAP_HAVE_AVX2) && DRAGMAP_HAVE_AVX2
+  if (useAvx2_) {
+    const s_profile_avx2* profile =
+        reverseQuery ? profileRevAvx2_[readIdx] : profileAvx2_[readIdx];
+    result = ssw_align_avx2(
+        profile, databaseBeginInt, dbSize, gapInit_, gapExtend_, flag, filters, filterd, maskLen);
+  } else
 #endif
-          profile, databaseBeginInt, dbSize, gapInit_, gapExtend_, flag, filters, filterd, maskLen);
+  {
+    const s_profile_sse2* profile =
+        reverseQuery ? profileRevSse2_[readIdx] : profileSse2_[readIdx];
+    result = ssw_align_sse2(
+        profile, databaseBeginInt, dbSize, gapInit_, gapExtend_, flag, filters, filterd, maskLen);
+  }
 
   this->getCigarOperations(*result, querySize, cigar);
 

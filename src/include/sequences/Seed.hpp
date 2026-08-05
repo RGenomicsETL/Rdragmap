@@ -15,6 +15,7 @@
 #ifndef SEQUENCES_SEED_HPP
 #define SEQUENCES_SEED_HPP
 
+#include <cstdint>
 #include <ostream>
 #include <vector>
 

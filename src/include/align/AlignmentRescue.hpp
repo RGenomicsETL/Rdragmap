@@ -15,11 +15,11 @@
 #ifndef ALIGN_ALIGNMENT_RESCUE_HPP
 #define ALIGN_ALIGNMENT_RESCUE_HPP
 
-#include <emmintrin.h>
 #include <array>
 #include <deque>
 #include "align/Alignment.hpp"
 #include "align/InsertSizeParameters.hpp"
+#include "common/Simd.hpp"
 #include "map/ChainBuilder.hpp"
 #include "reference/ReferenceSequence.hpp"
 #include "sequences/Read.hpp"

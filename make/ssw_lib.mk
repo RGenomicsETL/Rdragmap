@@ -11,6 +11,9 @@ ssw_lib_dirs_aux:=$(wordlist 2, $(words $(ssw_lib_dirs_aux)), $(ssw_lib_dirs_aux
 endif
 
 lib_sources := $(wildcard $(SSW_SRC_DIR)/$(lib_dir)/*.cpp)
+ifeq (0,$(DRAGMAP_HAVE_AVX2))
+lib_sources := $(filter-out $(SSW_SRC_DIR)/$(lib_dir)/ssw_avx2.cpp,$(lib_sources))
+endif
 lib_c_sources := $(wildcard $(SSW_SRC_DIR)/$(lib_dir)/*.c)
 lib_objects := $(lib_sources:$(SSW_SRC_DIR)/$(lib_dir)/%.cpp=$(DRAGEN_OS_BUILD)/ssw_$(lib_dir)/%.o)
 lib_objects += $(lib_c_sources:$(SSW_SRC_DIR)/$(lib_dir)/%.c=$(DRAGEN_OS_BUILD)/ssw_$(lib_dir)/%.o)
@@ -36,6 +39,13 @@ $(DRAGEN_OS_BUILD)/libdragmap-$(lib_dir).a: $(lib_objects)
 $(DRAGEN_OS_BUILD)/ssw_$(lib_dir)/%.o: lib_dir:=$(lib_dir)
 $(DRAGEN_OS_BUILD)/ssw_$(lib_dir)/%.o: $(SSW_SRC_DIR)/$(lib_dir)/%.cpp $(DRAGEN_OS_BUILD)/ssw_$(lib_dir)/%.d $(DRAGEN_OS_BUILD)/ssw_$(lib_dir)/.sentinel
 	$(SILENT) $(CXX) $(DEPFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $< && $(POSTCOMPILE)
+
+ifeq (1,$(DRAGMAP_HAVE_AVX2))
+# This is the only object compiled with AVX2. Runtime code must check
+# common::cpuSupportsAvx2() before entering any symbol in this object.
+$(DRAGEN_OS_BUILD)/ssw_$(lib_dir)/ssw_avx2.o: $(SSW_SRC_DIR)/$(lib_dir)/ssw_avx2.cpp $(DRAGEN_OS_BUILD)/ssw_$(lib_dir)/ssw_avx2.d $(DRAGEN_OS_BUILD)/ssw_$(lib_dir)/.sentinel
+	$(SILENT) $(CXX) $(DEPFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(DRAGMAP_AVX2_FLAGS) -DDRAGMAP_COMPILE_AVX2=1 -c -o $@ $< && $(POSTCOMPILE)
+endif
 
 $(DRAGEN_OS_BUILD)/ssw_$(lib_dir)/%.o: $(SSW_SRC_DIR)/$(lib_dir)/%.c $(DRAGEN_OS_BUILD)/ssw_$(lib_dir)/%.d $(DRAGEN_OS_BUILD)/ssw_$(lib_dir)/.sentinel
 	$(SILENT) $(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -c -o $@ $< && $(POSTCOMPILE)

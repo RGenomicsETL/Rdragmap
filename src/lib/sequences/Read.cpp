@@ -12,13 +12,12 @@
  **
  **/
 
-#include <emmintrin.h>
-
 #include <cassert>
 #include <sstream>
 #include <vector>
 
 #include "common/Exceptions.hpp"
+#include "common/Simd.hpp"
 #include "sequences/Read.hpp"
 
 namespace dragenos {

@@ -66,10 +66,14 @@ void ReadGroupAlignmentCounts::updateNonDups(const DbamHeader* dbh, const bool e
 
   if (!hasMate || isFirstInPair) {
     ++m_numRecordsR1;
-    m_numMismatchesR1 += dbh->getEditDistance();
+    if (!dbh->isUnmapped() && dbh->getEditDistance() > 0) {
+      m_numMismatchesR1 += dbh->getEditDistance();
+    }
   } else {
     ++m_numRecordsR2;
-    m_numMismatchesR2 += dbh->getEditDistance();
+    if (!dbh->isUnmapped() && dbh->getEditDistance() > 0) {
+      m_numMismatchesR2 += dbh->getEditDistance();
+    }
   }
 
   // total number of reads mapped, with mapq>0, which are not
@@ -87,7 +91,7 @@ void ReadGroupAlignmentCounts::updateNonDups(const DbamHeader* dbh, const bool e
     m_sumSeqLengthR2 += seqLength;
 
   // BQ30 bases for all reads
-  uint16_t lcnt = 0;
+  uint32_t lcnt = 0;
   if (extendedBamMetrics) {
 
     lcnt = countBQ30Bases(seq, seqLength);
@@ -174,11 +178,9 @@ void ReadGroupAlignmentCounts::update(
 
   if (type & COUNT_ALL_BUT_DUPS) {
     updateNonDups(dbh, extendedBamMetrics);
-  } else if (type & COUNT_DUPLICATES) {
+  }
+  if (type & COUNT_DUPLICATES) {
     updateDups(dbh, extendedBamMetrics);
-  } else if (type & COUNT_ALL) {
-    updateDups(dbh, extendedBamMetrics);
-    updateNonDups(dbh, extendedBamMetrics);
   }
 }
 

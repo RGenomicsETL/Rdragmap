@@ -15,6 +15,7 @@
 #ifndef MAP_SEED_POSITION_HPP
 #define MAP_SEED_POSITION_HPP
 
+#include <cstdint>
 #include <ostream>
 
 #include "sequences/Seed.hpp"

@@ -34,8 +34,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <immintrin.h>
-
 
 #define MAPSTR "MIDNSHP=X"
 #define BAM_CIGAR_SHIFT 4u
@@ -44,7 +42,7 @@
 struct _profile_sse2;
 typedef struct _profile_sse2 s_profile_sse2;
 
-#ifdef __AVX2__
+#if defined(DRAGMAP_HAVE_AVX2) && DRAGMAP_HAVE_AVX2
 struct _profile_avx2;
 typedef struct _profile_avx2 s_profile_avx2;
 #endif
@@ -103,7 +101,7 @@ s_profile_sse2* ssw_init_sse2 (
     const int8_t* mat, const int32_t n, const int32_t bias,
     const int8_t score_size);
 
-#ifdef __AVX2__
+#if defined(DRAGMAP_HAVE_AVX2) && DRAGMAP_HAVE_AVX2
 s_profile_avx2* ssw_init_avx2 (
     const int8_t* read, const int32_t readLen,
     const int8_t* mat, const int32_t n, const int32_t bias,
@@ -115,7 +113,7 @@ s_profile_avx2* ssw_init_avx2 (
 */
 void init_destroy_sse2 (s_profile_sse2* p);
 
-#ifdef __AVX2__
+#if defined(DRAGMAP_HAVE_AVX2) && DRAGMAP_HAVE_AVX2
 void init_destroy_avx2 (s_profile_avx2* p);
 #endif
 
@@ -163,7 +161,7 @@ s_align* ssw_align_sse2 (
     const int32_t filterd,
     const int32_t maskLen);
 
-#ifdef __AVX2__
+#if defined(DRAGMAP_HAVE_AVX2) && DRAGMAP_HAVE_AVX2
 s_align* ssw_align_avx2 (
     const s_profile_avx2* prof,
     const int8_t* ref,

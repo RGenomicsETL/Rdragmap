@@ -40,7 +40,7 @@
 #include "ssw.hpp"
 #include "ssw_internal.hpp"
 
-#ifdef __AVX2__
+#if defined(DRAGMAP_COMPILE_AVX2) && DRAGMAP_COMPILE_AVX2
 
 constexpr int AVX2_BYTE_ELEMS = 32;
 
@@ -507,4 +507,4 @@ s_align* ssw_align_avx2 (
   return r;
 }
 
-#endif // #ifdef __AVX2__
+#endif // DRAGMAP_COMPILE_AVX2

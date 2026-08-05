@@ -30,7 +30,6 @@
 
 // shared and sse2-specific implementations
 
-#include <emmintrin.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>

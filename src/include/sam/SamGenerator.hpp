@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include "align/Mapq.hpp"
+#include "common/Version.hpp"
 #include "reference/HashtableConfig.hpp"
 #include "sequences/Read.hpp"
 
@@ -169,8 +170,8 @@ public:
       const std::string                 rgsm)
   {
     os << "@HD\tVN:1.4\tSO:unsorted\n";
-    os << "@PG\tID: DRAGEN-OS\tVN:" DRAGEN_OS_VERSION "\tCL:" << commandLine << "\n";
-    os << "@RG\tID:" << rgid << "\tLB:LB0\tPL:PL0\tPU:PU0\tSM:" << rgsm << "\n";
+    os << "@PG\tID:DRAGMAP\tVN:" << common::Version::string() << "\tCL:" << commandLine << "\n";
+    os << "@RG\tID:" << rgid << "\tLB:LB0\tPL:ILLUMINA\tPU:PU0\tSM:" << rgsm << "\n";
 
     // sequences must be generated in the original order but they are internally sorted by increasing
     // positions

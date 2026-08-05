@@ -699,3 +699,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 SSW Library: An SIMD Smith-Waterman C/C++/Python/Java Library for Use in Genomic Applications is used 
 License: MIT
 ​Copyright (c) 2012-2015 Boston College
+
+******************************************************************
+
+Rdragmap portability and R integration modifications
+Copyright (c) 2026 Sounkou Mahamane Toure
+
+The modified work remains under GNU General Public License Version 3. Changes
+are identified by repository history and ERRATA.md.
+
+SIMDe headers
+Copyright (c) 2017 Evan Nemerson <evan@nemerson.com> and contributors
+License: MIT
+Repository: https://github.com/simd-everywhere/simde
+Pinned source and full license: thirdparty/simde/VERSION and
+thirdparty/simde/COPYING

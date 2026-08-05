@@ -21,8 +21,8 @@
 #include <sys/stat.h>
 #include "crc_hash.h"
 #include "hash_table_compress.h"
-#ifndef LOCAL_BUILD
 #include "crc32_hw.h"
+#ifndef LOCAL_BUILD
 #include "watchdog.h"
 #ifdef _TARGET_PPC_
 #include "crc32_powerpc.h"
@@ -105,7 +105,7 @@ const uint8_t baseCodeBaseList[16][4] = {
 
 void printHistogram(FILE* file, uint64_t* hist, int bins, int indent, int lastPlus)
 {
-  char     binStr[20], valStr[20], pctStr[20], binLine[120] = "", valLine[120] = "", pctLine[120] = "";
+  char     binStr[32], valStr[32], pctStr[32], binLine[120] = "", valLine[120] = "", pctLine[120] = "";
   int      i, x, len = 0, first = 1, max, last = 0;
   uint64_t total = 0;
   double   pct;
@@ -139,8 +139,8 @@ void printHistogram(FILE* file, uint64_t* hist, int bins, int indent, int lastPl
         sprintf(pctStr, "%.2f%%", pct);
       else
         sprintf(pctStr, "-");
-      sprintf(binStr, "%u", i);
-      sprintf(valStr, "%llu", hist[i]);
+      snprintf(binStr, sizeof(binStr), "%u", i);
+      snprintf(valStr, sizeof(valStr), "%llu", hist[i]);
       if (lastPlus && i == bins - 1) strcat(binStr, "+");
       max = strlen(valStr);
       max = (max < strlen(pctStr) ? strlen(pctStr) : max);
@@ -539,7 +539,7 @@ typedef struct {
   int*               abort;
 } buildThreadCtx_t;
 
-#if defined(LOCAL_BUILD) && !defined(_TARGET_PPC_)
+#if defined(LOCAL_BUILD) && (defined(__x86_64__) || defined(__i386__))
 static inline uint64_t RDTSC()
 {
   uint32_t hi, lo;
@@ -2813,26 +2813,10 @@ char* buildHashTable(
       pthread_mutex_lock(&lock);
 #endif
       for (k = 0; k < chunkRecords; k++, recp++) {
-#if defined(LOCAL_BUILD) && defined(__x86_64__)
-        __asm__ __volatile__(
-            "crc32q\t"
-            "(%1), %0"
-            : "=r"(hashDigest)
-            : "r"((uint64_t*)recp), "0"(hashDigest));
-#elif !defined(LOCAL_BUILD)
-        hashDigest   = crc32c_hw(hashDigest, (const unsigned char*)recp, 8);
-#endif
+        hashDigest = crc32c_hw(hashDigest, (const unsigned char*)recp, 8);
       }
       for (k = 0; k < numExtendHitRecs; k++, extendHitRecs++) {
-#if defined(LOCAL_BUILD) && defined(__x86_64__)
-        __asm__ __volatile__(
-            "crc32q\t"
-            "(%1), %0"
-            : "=r"(extTabDigest)
-            : "r"((uint64_t*)extendHitRecs), "0"(extTabDigest));
-#elif !defined(LOCAL_BUILD)
         extTabDigest = crc32c_hw(extTabDigest, (const unsigned char*)extendHitRecs, 8);
-#endif
       }
 #if defined(_TARGET_PPC_)
       pthread_mutex_unlock(&lock);

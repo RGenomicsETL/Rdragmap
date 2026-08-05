@@ -20,11 +20,9 @@
 #include <memory>
 #include <string>
 #include <vector>
-#ifdef __AVX2__
-#include <immintrin.h>
-#endif
 
 #include "common/Exceptions.hpp"
+#include "common/Simd.hpp"
 
 namespace dragenos {
 namespace reference {
@@ -116,24 +114,21 @@ public:
       pos++;
     }
 
-#ifdef __AVX2__
-    constexpr int  ELEMS_AVX2 = 32;
-    unsigned char* dst        = out.data();
-    __m128i        mask       = _mm_set1_epi8(0x0F);
+    constexpr int  ELEMS_SIMD = 32;
+    unsigned char* dst  = out.data();
+    simde__m128i   mask = simde_mm_set1_epi8(0x0F);
 
-    for (; pos + ELEMS_AVX2 <= len; pos += ELEMS_AVX2) {
-      __m128i data = _mm_loadu_si128((__m128i*)(&data_[(beginPosition + pos) / 2]));
-      __m128i low  = _mm_and_si128(data, mask);
-      __m128i high = _mm_and_si128(_mm_srli_epi16(data, 4), mask);
+    for (; pos + ELEMS_SIMD <= len; pos += ELEMS_SIMD) {
+      simde__m128i data =
+          simde_mm_loadu_si128((const simde__m128i*)(&data_[(beginPosition + pos) / 2]));
+      simde__m128i low  = simde_mm_and_si128(data, mask);
+      simde__m128i high = simde_mm_and_si128(simde_mm_srli_epi16(data, 4), mask);
 
-      __m256i lowExt      = _mm256_cvtepu8_epi16(low);
-      __m256i highExt     = _mm256_cvtepu8_epi16(high);
-      __m256i highShifted = _mm256_slli_si256(highExt, 1);  // shifting out the byte 15 but we don't care
-
-      __m256i resBases = _mm256_or_si256(lowExt, highShifted);
-      _mm256_storeu_si256((__m256i*)&dst[pos], resBases);
+      simde__m128i first  = simde_mm_unpacklo_epi8(low, high);
+      simde__m128i second = simde_mm_unpackhi_epi8(low, high);
+      simde_mm_storeu_si128((simde__m128i*)&dst[pos], first);
+      simde_mm_storeu_si128((simde__m128i*)&dst[pos + 16], second);
     }
-#endif
 
     // process remaining bases
     for (; pos != len; pos++) {

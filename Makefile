@@ -35,7 +35,20 @@ help-targets:
 	@$(ECHO) 'Help:      help help-targets'
 	@$(ECHO) 'Cleanup:   clean'
 	@$(ECHO) 'Install:   install'
+	@$(ECHO) 'SIMD:      simd-info'
+	@$(ECHO) 'Compile:   native-libraries'
+	@$(ECHO) 'Validate:  compatibility-check'
 	@$(ECHO) 'Libraries: $(library_targets)'
+
+.PHONY: simd-info
+simd-info:
+	@$(ECHO) 'compiler target: ' "$$($(CXX) -dumpmachine 2>/dev/null || echo unknown)"
+	@$(ECHO) 'portable SIMDe baseline: yes'
+	@$(ECHO) 'native AVX2 SSW object: $(DRAGMAP_HAVE_AVX2)'
+
+.PHONY: compatibility-check
+compatibility-check:
+	$(DRAGEN_OS_ROOT_DIR)/meta/check-compatibility.sh
 
 ############################################################
 ##
@@ -80,6 +93,11 @@ include $(DRAGEN_OS_MAKE_DIR)/tests.mk
 endif
 
 include $(DRAGEN_OS_MAKE_DIR)/install.mk
+
+# Build every translation unit into static libraries without linking a host
+# executable. This is the cross-compiler authority for aarch64/NEON.
+.PHONY: native-libraries
+native-libraries: $(library_targets)
 endif
 
 ############################################################

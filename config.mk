@@ -1,4 +1,5 @@
 DRAGEN_OS_VERSION:=0.2020.08.19
+DRAGMAP_SOURCE_VERSION:=1.3.1
 
 ############################################################
 ##
@@ -8,14 +9,9 @@ DRAGEN_OS_VERSION:=0.2020.08.19
 
 SHELL:=/bin/bash
 UNAME_STRING:=$(shell uname -a)
-OS?=$(or \
-    $(findstring el7,$(UNAME_STRING)),\
-#    $(findstring el8,$(UNAME_STRING)),\
-#    $(findstring Ubuntu,$(UNAME_STRING)),\
-    )
-ifndef OS
-$(error Unsupported Operating System: $(UNAME_STRING))
-endif
+# The compiler target and successful feature probes determine what is built.
+# Do not reject operating-system names before the toolchain is inspected.
+OS?=$(shell uname -s 2>/dev/null || echo unknown)
 
 ############################################################
 ##
@@ -126,7 +122,9 @@ DRAGEN_OS_BUILD:=$(DRAGEN_OS_BUILD_DIR)
 DRAGEN_OS_LIBS := common options bam fastq sequences io reference map align workflow
 
 ## List the libraries from dragen source tree in the order where they should be statically linked
-DRAGEN_LIBS := common/hash_generation host/dragen_api/sampling common host/metrics host/infra/crypto
+# crypto follows hash_generation in the final static link order because the
+# portable hash digest path calls crc32c_hw(). Inclusion prepends each archive.
+DRAGEN_LIBS := host/infra/crypto common/hash_generation host/dragen_api/sampling common host/metrics
 
 ## List the libraries that pretend the dragen source tree libraries are being linked with rest of dragen source tree
 DRAGEN_STUB_LIBS := host/dragen_api host/metrics host/infra/linux
@@ -145,12 +143,16 @@ endif
 ############################################################
 
 # version must be tagged in the git repo
-VERSION_STRING?=$(shell git describe --tags --always --abbrev=8 2> /dev/null || echo "UNKNOWN")
+VERSION_STRING?=$(shell git describe --tags --always --abbrev=8 2> /dev/null || echo "$(DRAGMAP_SOURCE_VERSION)-rdragmap")
 
 CXXWARNINGS=-Werror -Wno-unused-variable -Wno-free-nonheap-object -Wno-parentheses
 CWARNINGS?=-Werror -Wno-unused-variable -Wno-unused-function -Wno-format-truncation
 CXXSTD?=-std=c++17
 
+# RsimdDispatch pattern: keep ordinary objects on the compiler baseline and
+# stage AVX2 only when the compiler targets x86 and accepts the ISA flag.
+DRAGMAP_AVX2_FLAGS?=-mavx2
+DRAGMAP_HAVE_AVX2?=$(shell CXX='$(CXX)' AVX2_FLAGS='$(DRAGMAP_AVX2_FLAGS)' sh meta/probe-avx2.sh)
 
 CPPFLAGS?=-Wall -ggdb3
 #some dragen sources need this
@@ -173,13 +175,16 @@ CPPFLAGS += -I $(SSW_SRC_DIR)
 CPPFLAGS += -I $(DRAGEN_STUBS_DIR)/host/dragen_api -I $(DRAGEN_STUBS_DIR)/host/dragen_api/dbam  
 CPPFLAGS += -I $(DRAGEN_STUBS_DIR)/host/infra/public -I $(DRAGEN_STUBS_DIR)/host/metrics/public
 CPPFLAGS += -I $(BAMTOOLS_STUBS_DIR)/include
+CPPFLAGS += -I $(DRAGEN_THIRDPARTY)/simde
+ifeq (1,$(DRAGMAP_HAVE_AVX2))
+CPPFLAGS += -DDRAGMAP_HAVE_AVX2=1
+endif
 
 ifneq (,$(BOOST_LIBRARYDIR))
 LDFLAGS += -L $(BOOST_LIBRARYDIR)
 endif
 LDFLAGS += $(BOOST_LIBRARIES:%=-lboost_%)
 
-CPPFLAGS += -msse4.2 -mavx2 
 ifdef DEBUG
 CPPFLAGS += -O0 -ggdb3 -femit-class-debug-always -fno-omit-frame-pointer
 ifeq ($(DEBUG),glibc)

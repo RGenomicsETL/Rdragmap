@@ -27,6 +27,7 @@
 #include <zlib.h>
 
 #include "crc_hash.h"
+#include "crc32_hw.h"
 #include "gen_hash_table.h"
 #include "hash_cfg_file.h"
 #include "hash_table.h"
@@ -35,7 +36,6 @@
 #include "methylation_hash_table.h"
 #ifndef LOCAL_BUILD
 #include "alt_contig_tracker.h"
-#include "crc32_hw.h"
 #include "reference_names.h"
 #include "syslogger.h"
 #include "watchdog.h"
@@ -55,10 +55,6 @@
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-
-#ifndef LOCAL_BUILD
-extern uint32_t crc32c_hw(uint32_t crc, const void* buf, size_t len);
-#endif
 
 #define MAX_LINE (REF_SEQ_END_PAD_BASES + 4096)
 #define MAX_LIFT_LINE (1024 * 1024)
@@ -544,15 +540,7 @@ void* strScanThreadMultBase(void* ctxPtr)
             seed       = (fwSeed < rcSeed ? fwSeed : rcSeed) | (anchorBin << anchorShift);
             palindrome = (fwSeed == rcSeed);
             // CRC32c hash the seed
-#if defined(LOCAL_BUILD) && defined(__x86_64__)
-            __asm__ __volatile__(
-                "crc32q\t"
-                "(%1), %0"
-                : "=r"(hash)
-                : "r"((uint64_t*)seedPtr), "0"(0));
-#elif !defined(LOCAL_BUILD)
             hash = crc32c_hw(0, (const unsigned char*)seedPtr, 8);
-#endif
             // Add reference sequence ID in anchored mode, to separate difference sequences
             hash += anchorRefSeq;
             // Obtain a lock corresponding to a 20-bit segment of the hash
@@ -724,15 +712,7 @@ void* strScanThread(void* ctxPtr)
         if (!seedIn) {
           ctx->validSeeds++;
           // CRC32c hash the seed
-#if defined(LOCAL_BUILD) && defined(__x86_64__)
-          __asm__ __volatile__(
-              "crc32q\t"
-              "(%1), %0"
-              : "=r"(hash)
-              : "r"((uint64_t*)seedPtr), "0"(0));
-#elif !defined(LOCAL_BUILD)
           hash = crc32c_hw(0, (const unsigned char*)seedPtr, 8);
-#endif
           // Add reference sequence ID in anchored mode, to separate difference sequences
           hash += anchorRefSeq;
           // Obtain a lock corresponding to a 20-bit segment of the hash
@@ -1635,15 +1615,17 @@ char* generateHashTable(hashTableConfig_t* config, int argc, char* argv[])
     }
   }
 
-  // Convert hash table size string to bytes, address bits, and 64ths
+  // Convert hash table size string to address bits and 64ths without
+  // destroying the byte count needed by occupancy and memory calculations.
   if (bytes) {
-    addrBits = 0;
+    uint64_t sizeCode = bytes;
+    addrBits          = 0;
     int sixtyfourths;
-    while (bytes && !(bytes & 1)) {
-      bytes >>= 1;
+    while (sizeCode && !(sizeCode & 1)) {
+      sizeCode >>= 1;
       addrBits++;
     }
-    if (bytes < 1 || bytes > 63) {
+    if (sizeCode < 1 || sizeCode > 63) {
       snprintf(
           ERR_MSG,
           sizeof(ERR_MSG),
@@ -1651,12 +1633,12 @@ char* generateHashTable(hashTableConfig_t* config, int argc, char* argv[])
           config->sizeStr);
       return ERR_MSG;
     }
-    while (bytes <= 32) {
-      bytes <<= 1;
+    while (sizeCode <= 32) {
+      sizeCode <<= 1;
       addrBits--;
     }
     addrBits += 6;
-    sixtyfourths           = bytes;
+    sixtyfourths           = sizeCode;
     cfghdr->tableAddrBits  = addrBits;
     cfghdr->tableSize64ths = sixtyfourths;
   }

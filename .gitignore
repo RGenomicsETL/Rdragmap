@@ -1,0 +1,7 @@
+build/
+.checks/
+.pi/
+*.o
+*.d
+*.Td
+*.failed

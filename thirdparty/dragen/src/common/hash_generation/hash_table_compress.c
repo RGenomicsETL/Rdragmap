@@ -22,8 +22,8 @@
 #include "crc_hash.h"
 #include "gen_hash_table.h"
 #include "hash_table.h"
-#ifndef LOCAL_BUILD
 #include "crc32_hw.h"
+#ifndef LOCAL_BUILD
 #include "watchdog.h"
 #ifdef _TARGET_PPC_
 #include "crc32_powerpc.h"
@@ -1601,15 +1601,7 @@ uint32_t decompHashTableDigest(decompHashTableCtx_t* ctx)
   uint64_t* e      = (uint64_t*)ctx->hashTable + ctx->hashRecs;
   uint64_t  digest = 0;
   for (; p != e; p++) {
-#if defined(LOCAL_BUILD) && defined(__x86_64__)
-    __asm__ __volatile__(
-        "crc32q\t"
-        "(%1), %0"
-        : "=r"(digest)
-        : "r"(p), "0"(digest));
-#elif !defined(LOCAL_BUILD)
     digest = crc32c_hw(digest, (const unsigned char*)p, 8);
-#endif
   }
   return (uint32_t)digest;
 }
@@ -1620,15 +1612,7 @@ uint32_t decompExtendTableDigest(decompHashTableCtx_t* ctx)
   uint64_t* e      = (uint64_t*)ctx->extendTable + ctx->extendRecs;
   uint64_t  digest = 0;
   for (; p != e; p++) {
-#if defined(LOCAL_BUILD) && defined(__x86_64__)
-    __asm__ __volatile__(
-        "crc32q\t"
-        "(%1), %0"
-        : "=r"(digest)
-        : "r"(p), "0"(digest));
-#elif !defined(LOCAL_BUILD)
     digest = crc32c_hw(digest, (const unsigned char*)p, 8);
-#endif
   }
   return (uint32_t)digest;
 }

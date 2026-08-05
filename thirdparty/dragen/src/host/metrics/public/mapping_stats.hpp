@@ -4,24 +4,21 @@
 #ifndef __MA_STATS__
 #define __MA_STATS__
 
+#include <chrono>
+#include <cstdint>
+#include <memory>
+#include <ostream>
 #include <string>
 
+#if defined(__aarch64__) || defined(__arm__) || defined(_M_ARM64) || defined(_M_ARM)
+#define _TARGET_ARM_
+#elif defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)
 #define _TARGET_X86_
-#if defined(_TARGET_X86_)
-#include <mmintrin.h>
-#include <xmmintrin.h>
-#elif defined(_TARGET_PPC_)
-/*#include "mmintrin_types.h"
-#include "vec128int.h"
-#include "vec_defines.h"
-#include "vecs_256_and_64_bit.h"
-#undef bool
-#undef vector*/
-#elif defined(_TARGET_ARM_)
-#include "SSE2NEON.h"
 #else
-#error Target not recognized, porting needed
+#error Unsupported mapping statistics target
 #endif
+
+#include "common/Simd.hpp"
 #include "infra_compiler.h"
 
 #include "print_metrics.hpp"
@@ -222,7 +219,7 @@ public:
     m_unpairedMultiple           = 0;
     m_unpairedOnce               = 0;
     m_QCfailed                   = 0;
-    for (int i = 1; i < MAPQ_HIST_NR_BINS; i++) {
+    for (int i = 0; i < MAPQ_HIST_NR_BINS; i++) {
       m_mapq_hist[i] = 0;
     }
     m_singleton                   = 0;
@@ -308,7 +305,6 @@ public:
   uint64_t         m_hasMate;
   uint64_t         m_suppressed;
   bool             m_isTumor;
-  bool             m_extended_metrics;
 
 
 void printStats(std::chrono::duration<float>  mapDuration);
@@ -345,8 +341,6 @@ private:
         n_softclipped += count;
         break;
       case dragenos::align::Cigar::SKIP:
-        // Cigar operations of type SKIP consume two records.
-        ++it;++j;
         containsSplice = true;
         break;
       default:
@@ -456,8 +450,6 @@ void printMapAlignCommonStats(
         inSeqIdx += oplen;
         break;
       case dragenos::align::Cigar::SKIP:
-        // Cigar operations of type SKIP consume two records.
-        ++it;j++;
         break;
       case dragenos::align::Cigar::DELETE:
       case dragenos::align::Cigar::HARD_CLIP:
