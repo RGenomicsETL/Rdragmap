@@ -233,7 +233,7 @@ void ReadGroupInsertStats::waitForValidInterval()
         flushUntilIntervalValid(useInterval);
       } else {
 #endif
-        boost::unique_lock<boost::mutex> lock(m_mutex);
+        std::unique_lock<std::mutex> lock(m_mutex);
         while (!m_intervals[useInterval]->isValid()) {
           ++m_numStalls;
           m_calculatedAnInterval.wait(lock);
@@ -277,7 +277,7 @@ void ReadGroupInsertStats::saveForRemapping(InputDbamRecord& dbr)
 // records.
 void ReadGroupInsertStats::setInitDoneSending()
 {
-  boost::unique_lock<boost::mutex> lock(m_init_mutex);
+  std::unique_lock<std::mutex> lock(m_init_mutex);
 
   if (m_initState != SENDING) return;
 
@@ -435,7 +435,7 @@ void ReadGroupInsertStats::completeInitialization()
   m_sendingInterval = 0;
   m_intervals[m_sendingInterval]->reset();
   m_intervals[m_sendingInterval]->clearInserts();
-  boost::unique_lock<boost::mutex> lock(m_init_mutex);
+  std::unique_lock<std::mutex> lock(m_init_mutex);
   m_initState = DONE;
   m_finishedInitialization.notify_all();
 }
@@ -450,7 +450,7 @@ void ReadGroupInsertStats::waitUntilInitDone()
 
   // We're done sending the init input records, but they haven't come back from
   // the board yet. Wait until they do.
-  boost::unique_lock<boost::mutex> lock(m_init_mutex);
+  std::unique_lock<std::mutex> lock(m_init_mutex);
   while (m_initState == WAITING) {
     m_finishedInitialization.wait(lock);
   }
@@ -483,7 +483,7 @@ void ReadGroupInsertStats::calculate(const uint8_t interval)
   StatsInterval::Inserts_c inserts;
   inserts.reserve(roundUpToMultiple(m_sampleSize + 1, m_readsPerInterval));
   fetchInserts(interval, inserts);
-  boost::unique_lock<boost::mutex> lock(m_mutex);
+  std::unique_lock<std::mutex> lock(m_mutex);
   m_intervals[interval]->calculate(inserts, getMeanReadLen());
   logInterval(interval);
 

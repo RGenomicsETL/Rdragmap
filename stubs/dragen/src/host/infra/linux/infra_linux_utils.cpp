@@ -21,7 +21,7 @@
 
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -140,7 +140,7 @@ std::string getExecutableName()
 //------------------------------------------------------------------------alain
 std::string getExecutableDirectory()
 {
-  boost::filesystem::path exedir(getExecutablePath());
+  std::filesystem::path exedir(getExecutablePath());
   return exedir.string();
 }
 

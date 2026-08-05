@@ -34,10 +34,10 @@ ReferenceDir::~ReferenceDir() {}
 // exception on error.
 //
 typename ReferenceDir7::UcharPtr ReferenceDir7::ReadFileIntoBuffer(
-    const boost::filesystem::path& filePath, std::streamsize& size)
+    const std::filesystem::path& filePath, std::streamsize& size)
 {
   std::string path = filePath.string();
-  if (!boost::filesystem::exists(path)) {
+  if (!std::filesystem::exists(path)) {
     //    THROW(DragenException, "Could not load reference - ", path, " does not exist");
     throw std::logic_error("Could not load reference - " + path + " does not exist");
   }
@@ -62,7 +62,7 @@ typename ReferenceDir7::UcharPtr ReferenceDir7::ReadFileIntoBuffer(
   return bufPtr;
 }
 
-ReferenceDir7::ReferenceDir7(const boost::filesystem::path& path, bool mmap, bool load)
+ReferenceDir7::ReferenceDir7(const std::filesystem::path& path, bool mmap, bool load)
   : path_(path),
     hashtableConfigData_(getHashtableConfigData()),
     hashtableConfig_(hashtableConfigData_.data(), hashtableConfigData_.size())
@@ -132,7 +132,7 @@ ReferenceDir7::ReferenceDir7(const boost::filesystem::path& path, bool mmap, boo
 
 ReferenceDir7::~ReferenceDir7() {}
 
-static void checkDirectoryAndFile(const boost::filesystem::path& dir, const boost::filesystem::path& file)
+static void checkDirectoryAndFile(const std::filesystem::path& dir, const std::filesystem::path& file)
 {
   using namespace dragenos::common;
   if (!exists(dir))
@@ -145,10 +145,10 @@ static void checkDirectoryAndFile(const boost::filesystem::path& dir, const boos
     BOOST_THROW_EXCEPTION(IoException(ENOENT, std::string("ERROR: not a file: ") + filePath.string()));
 }
 
-static uintmax_t getFileSize(const boost::filesystem::path& filePath)
+static uintmax_t getFileSize(const std::filesystem::path& filePath)
 {
   using namespace dragenos::common;
-  boost::system::error_code ec;
+  std::error_code ec;
   const auto                fileSize = file_size(filePath, ec);
   if (ec)
     BOOST_THROW_EXCEPTION(

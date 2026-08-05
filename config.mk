@@ -39,7 +39,9 @@ BOOST_INCLUDEDIR?=$(BOOST_ROOT)/include
 BOOST_LIBRARYDIR?=$(BOOST_ROOT)/lib
 endif # ifneq (,$(BOOST_ROOT))
 
-BOOST_LIBRARIES := system filesystem date_time thread iostreams regex program_options
+# C++17 owns filesystem and threading. Boost remains only for compressed
+# streams and the command-line parser.
+BOOST_LIBRARIES := iostreams program_options
 
 ############################################################
 ##
@@ -214,7 +216,7 @@ endif # ifeq ($(ASAN,all)
 endif # ASAN 
 
 
-LDFLAGS+= -lz -lrt -lgomp -lpthread
+LDFLAGS+= -lz -lpthread
 
 ifdef STATIC_LIBCPP
 LDFLAGS+= -static-libstdc++

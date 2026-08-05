@@ -15,7 +15,7 @@
 #ifndef COMMON_SYSTEM_COMPATIBILITY_HPP
 #define COMMON_SYSTEM_COMPATIBILITY_HPP
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #if defined(_WIN32) && !defined(DRAGEN_OS_CYGWIN)
 
@@ -68,8 +68,8 @@ typedef unsigned long long vint128_t __attribute__((__vector_size__(16)));
 
 namespace dragenos {
 namespace common {
-using PathCharType   = boost::filesystem::path::value_type;
-using PathStringType = boost::filesystem::path::string_type;
+using PathCharType   = std::filesystem::path::value_type;
+using PathStringType = std::filesystem::path::string_type;
 
 std::string pathStringToStdString(const PathStringType& pathString);
 
@@ -100,7 +100,7 @@ bool ulimitV(uint64_t* pLimit);
  * \brief Sets a hook that monitors memory allocations.
  *
  * \param hook  Hook to set. If hook returns false, allocation will attempt to terminateWithCoreDump and fail.
- *              Calls to hook happen under the boost::unique_lock<boost::mutex>
+ *              Calls to hook happen under the std::unique_lock<std::mutex>
  */
 //void hookMalloc(bool (*hook)(size_t size, const void *caller));
 
@@ -123,7 +123,7 @@ void terminateWithCoreDump();
  */
 void configureMemoryManagement(const bool disableMultipleArenas, const bool disableFastbins);
 
-boost::filesystem::path getModuleFileName();
+std::filesystem::path getModuleFileName();
 
 /**
  * \brief calls linux-specific fallocate with FALLOC_FL_KEEP_SIZE to pre-allocate file on disk in a way that

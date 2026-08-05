@@ -21,9 +21,9 @@ namespace common {
 namespace detail {
 
 // global variable that allows turning off cerr output for things such as unit tests.
-std::atomic_int        CerrBlocker::cerrBlocked_(0);
-boost::recursive_mutex CerrLocker::cerrMutex_;
-THREAD_LOCAL unsigned  IndentBase::width = 0;
+std::atomic_int       CerrBlocker::cerrBlocked_(0);
+std::recursive_mutex  CerrLocker::cerrMutex_;
+THREAD_LOCAL unsigned IndentBase::width = 0;
 
 #if 0
 

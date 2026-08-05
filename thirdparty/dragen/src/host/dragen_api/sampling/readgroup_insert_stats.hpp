@@ -13,10 +13,11 @@
 #ifndef __READGROUP_INSERT_STATS_HPP__
 #define __READGROUP_INSERT_STATS_HPP__
 
-#include <boost/thread.hpp>
 #include <cmath>
+#include <condition_variable>
 #include <deque>
 #include <iostream>
+#include <mutex>
 #include <vector>
 
 #include "stats_interval.hpp"
@@ -136,7 +137,7 @@ public:
 
   bool isInitDone()
   {
-    boost::unique_lock<boost::mutex> lock(m_mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
     return (m_initState == DONE);
   }
 
@@ -184,10 +185,10 @@ private:
   enum { DUMMY_READ_SIZE = 128 };
   InputDbamRemapper*        m_readSender;
   char                      m_dummyRead[DUMMY_READ_SIZE];  // raw memory for the "init-flush" read
-  boost::mutex              m_mutex;                       // protect the condition variable below
-  boost::condition_variable m_calculatedAnInterval;        // signal when an interval becomes valid
-  boost::mutex              m_init_mutex;                  // protect the condition variable below
-  boost::condition_variable m_finishedInitialization;      // signal when we got through init run
+  std::mutex              m_mutex;                       // protect the condition variable below
+  std::condition_variable m_calculatedAnInterval;        // signal when an interval becomes valid
+  std::mutex              m_init_mutex;                  // protect the condition variable below
+  std::condition_variable m_finishedInitialization;      // signal when we got through init run
 
   uint64_t m_numStalls;  // How many times have we stalled waiting for interval
                          // to become valid.

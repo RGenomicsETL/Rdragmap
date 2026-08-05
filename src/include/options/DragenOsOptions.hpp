@@ -15,8 +15,7 @@
 #ifndef OPTIONS_DRAGEN_OS_OPTIONS_HPP
 #define OPTIONS_DRAGEN_OS_OPTIONS_HPP
 
-#include <boost/filesystem.hpp>
-#include <boost/regex.hpp>
+#include <filesystem>
 #include <string>
 #include <thread>
 
@@ -37,7 +36,7 @@ private:
 
 public:
   std::string             description_;
-  boost::filesystem::path refDir_;
+  std::filesystem::path refDir_;
   bool                    mmapReference_ = false;
   bool                    loadReference_ = false;
   std::string             inputFile1_;

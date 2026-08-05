@@ -15,7 +15,7 @@
 #ifndef REFERENCE_REFERENCE_DIR_HPP
 #define REFERENCE_REFERENCE_DIR_HPP
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -37,7 +37,7 @@ public:
 
 class ReferenceDir7 : public ReferenceDir {
 public:
-  ReferenceDir7(const boost::filesystem::path& path, bool mmap, bool load);
+  ReferenceDir7(const std::filesystem::path& path, bool mmap, bool load);
   ~ReferenceDir7();
   virtual const reference::HashtableConfig& getHashtableConfig() const { return hashtableConfig_; };
   virtual const uint64_t*                   getHashtableData() const { return hashtableData_.get(); }
@@ -52,7 +52,7 @@ protected:
   static constexpr auto         extendTableBin     = "extend_table.bin";
   static constexpr auto         referenceBin       = "reference.bin";
   static constexpr auto         hashTableCmp       = "hash_table.cmp";
-  const boost::filesystem::path path_;
+  const std::filesystem::path path_;
   // raw binary content of the hashtable config file
   const std::vector<char> hashtableConfigData_;
   // TODO: replace with a placement new
@@ -87,7 +87,7 @@ protected:
   UcharPtr                                                                    referenceData_;
   std::unique_ptr<ReferenceSequence>                                          referenceSequencePtr_;
 
-  UcharPtr ReadFileIntoBuffer(const boost::filesystem::path& directory, std::streamsize& size);
+  UcharPtr ReadFileIntoBuffer(const std::filesystem::path& directory, std::streamsize& size);
 };
 
 }  // namespace reference

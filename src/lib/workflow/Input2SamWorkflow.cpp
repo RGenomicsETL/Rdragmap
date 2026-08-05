@@ -19,7 +19,7 @@
 
 #include "boost/iostreams/filter/gzip.hpp"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 
@@ -494,7 +494,7 @@ void input2Sam(const dragenos::options::DragenOsOptions& options)
       &referenceDir.getHashtableConfig(), referenceDir.getHashtableData(), referenceDir.getExtendTableData());
 
   std::ofstream os;
-  namespace bfs = boost::filesystem;
+  namespace bfs = std::filesystem;
   if (!options.outputDirectory_.empty()) {
     if (!exists(bfs::path(options.outputDirectory_))) {
       BOOST_THROW_EXCEPTION(common::IoException(
@@ -517,7 +517,7 @@ void input2Sam(const dragenos::options::DragenOsOptions& options)
   std::ofstream mappingMetricsLogStream;
 
   if (!options.outputDirectory_.empty()) {
-    namespace bfs = boost::filesystem;
+    namespace bfs = std::filesystem;
     if (!exists(bfs::path(options.outputDirectory_))) {
       BOOST_THROW_EXCEPTION(common::IoException(
           ENOENT, std::string("Output directory does not exist: ") + options.outputDirectory_));
@@ -552,7 +552,7 @@ void input2Sam(const dragenos::options::DragenOsOptions& options)
     std::ofstream insertSizeDistributionLogStream;
 
     if (!options.outputDirectory_.empty()) {
-      namespace bfs = boost::filesystem;
+      namespace bfs = std::filesystem;
       if (!exists(bfs::path(options.outputDirectory_))) {
         BOOST_THROW_EXCEPTION(common::IoException(
             ENOENT, std::string("Output directory does not exist: ") + options.outputDirectory_));

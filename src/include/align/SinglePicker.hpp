@@ -19,7 +19,7 @@
 #include <functional>
 #include <vector>
 
-#include <boost/filesystem.hpp>
+
 
 #include "align/Alignments.hpp"
 #include "align/InsertSizeParameters.hpp"

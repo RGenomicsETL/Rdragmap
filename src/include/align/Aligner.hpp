@@ -131,9 +131,6 @@ private:
   const int                           swAll_;
   const bool                          vectorizedSW_;
   /// read the hashtable config data and throw on error
-  //std::vector<char> getHashtableConfigData(const boost::filesystem::path referenceDir) const;
-  /// maps hashtable data and throw on error
-  //uint64_t *mmapHashtableData(const boost::filesystem::path referenceDir) const;
   // raw binary content of the hashtable config file
   //const std::vector<char> hashtableConfigData_;
   // TODO: replace with a placement new

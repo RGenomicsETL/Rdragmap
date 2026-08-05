@@ -21,7 +21,8 @@
 //
 //#include <boost/iostreams/device/back_inserter.hpp>
 //#include <boost/iostreams/filtering_stream.hpp>
-//#include <boost/filesystem.hpp>
+#include <filesystem>
+#include <thread>
 //
 #include "common/Debug.hpp"
 #include "options/DragenOsOptions.hpp"
@@ -36,8 +37,8 @@ namespace dragenos {
 namespace workflow {
 std::string GetFullPath(const std::string& p)
 {
-  boost::filesystem::path path(p);
-  boost::filesystem::path cpath(p);
+  std::filesystem::path path(p);
+  std::filesystem::path cpath(p);
   return cpath.string();
 }
 
@@ -77,8 +78,8 @@ void getRelativeLiftoverPath(const std::string& oldPath, std::string& newPath)
     buf[0] = '\0';
   }
 
-  boost::filesystem::path dragen_exe_dir(buf);
-  boost::filesystem::path p(oldPath);
+  std::filesystem::path dragen_exe_dir(buf);
+  std::filesystem::path p(oldPath);
   newPath = dragen_exe_dir.parent_path().string() + "/liftover/" + p.filename().string();
 }
 //-------------------------------------------------------------------------------swhitmore
@@ -99,7 +100,7 @@ void SetBuildHashTableOptions(
   std::cerr << "Supressing decoys" << std::endl;
 
   if (!decoysFile.empty()) {
-    assert(boost::filesystem::exists(decoysFile));
+    assert(std::filesystem::exists(decoysFile));
     std::cerr << "Using decoys file " << decoysFile << std::endl;
     config->decoyFname = strdup(decoysFile.c_str());
   }
@@ -151,7 +152,7 @@ void SetBuildHashTableOptions(
   }
 
   config->maxThreads =
-      opts.exists("ht-num-threads") ? opts.htNumThreads_ : boost::thread::hardware_concurrency();
+      opts.exists("ht-num-threads") ? opts.htNumThreads_ : std::thread::hardware_concurrency();
   config->sizeStr    = strdup(opts.htSize_.c_str());
   config->sjSizeStr  = opts.exists("ht-sj-size") ? strdup(opts.htSjSize_.c_str()) : NULL;
   config->memSizeStr = strdup(opts.htMemLimit_.c_str());
@@ -259,7 +260,7 @@ void uncompressHashCmp(const options::DragenOsOptions& opts)
   std::string hashCmpPath  = refdir + "/hash_table.cmp";
   std::string hashBinPath  = refdir + "/hash_table.bin";
   std::string extTablePath = refdir + "/extend_table.bin";
-  int         numThreads   = boost::thread::hardware_concurrency();
+  int         numThreads   = std::thread::hardware_concurrency();
   if (!decompAndWriteHashTable(
           refPath.c_str(), hashCmpPath.c_str(), hashBinPath.c_str(), extTablePath.c_str(), numThreads)) {
     BOOST_THROW_EXCEPTION(std::logic_error(std::string("Could not decompress ") << hashCmpPath));
@@ -303,8 +304,8 @@ void buildHashTable(const options::DragenOsOptions& opts)
     hashTableConfig_t bhtConfig;
     memset(&bhtConfig, 0, sizeof(bhtConfig));
     // Set parameters shared with build_hash_table that the user cannot change
-    boost::filesystem::path p(opts.outputDirectory_);
-    std::string             outdir = boost::filesystem::canonical(p).string();
+    std::filesystem::path p(opts.outputDirectory_);
+    std::string             outdir = std::filesystem::canonical(p).string();
     setDefaultHashParams(&bhtConfig, outdir.c_str(), (*it));
     SetBuildHashTableOptions(opts, &bhtConfig, *it);
 

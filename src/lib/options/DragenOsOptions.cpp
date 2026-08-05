@@ -26,7 +26,7 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/lambda/bind.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/thread.hpp>
+
 
 #include "common/Exceptions.hpp"
 #include "common/Version.hpp"
@@ -36,7 +36,7 @@ namespace dragenos {
 namespace options {
 
 namespace bpo = boost::program_options;
-namespace bfs = boost::filesystem;
+namespace bfs = std::filesystem;
 using boost::format;
 using common::InvalidOptionException;
 
@@ -331,12 +331,12 @@ void DragenOsOptions::postProcess(bpo::variables_map& vm)
       "Aligner.sw-method",
       methodSmithWatermanDeprecated_);
 
-  if (inputFile1_.empty() || boost::filesystem::is_directory(inputFile1_)) {
+  if (inputFile1_.empty() || std::filesystem::is_directory(inputFile1_)) {
     BOOST_THROW_EXCEPTION(
         InvalidOptionException("fastq-file1 or bam-input must point to an existing fastq file"));
   }
 
-  if (!inputFile2_.empty() && boost::filesystem::is_directory(inputFile2_)) {
+  if (!inputFile2_.empty() && std::filesystem::is_directory(inputFile2_)) {
     BOOST_THROW_EXCEPTION(InvalidOptionException("fastq-file2 must point to an existing fastq file"));
   }
 

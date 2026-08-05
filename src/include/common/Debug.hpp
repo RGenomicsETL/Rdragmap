@@ -16,14 +16,16 @@
 #define COMMON_DEBUG_HPP
 
 #include <atomic>
+#include <ctime>
 #include <iostream>
 #include <memory>
+#include <mutex>
+#include <thread>
 #include <typeinfo>
 
 #include <boost/algorithm/string.hpp>
 //#include <boost/date_time.hpp>
 #include <boost/io/ios_state.hpp>
-#include <boost/thread.hpp>
 
 #include "common/SystemCompatibility.hpp"
 
@@ -163,14 +165,19 @@ inline std::ostream& operator<<(std::ostream& os, const ThreadTimestamp&)
   ::std::time_t t;
   ::std::time(&t);
   ::std::tm curr, *curr_ptr;
-  curr_ptr = boost::date_time::c_time::localtime(&t, &curr);
+#ifdef _WIN32
+  curr_ptr = (0 == ::localtime_s(&curr, &t)) ? &curr : nullptr;
+#else
+  curr_ptr = ::localtime_r(&t, &curr);
+#endif
+  if (!curr_ptr) return os << "unknown-time\t[" << std::this_thread::get_id() << "]\t";
 
   os << (curr_ptr->tm_year + 1900) << '-' << std::setfill('0') << std::setw(2) << (curr_ptr->tm_mon + 1)
      << '-' << std::setfill('0') << std::setw(2) << curr_ptr->tm_mday << ' ' <<
 
       std::setfill('0') << std::setw(2) << curr_ptr->tm_hour << ':' << std::setfill('0') << std::setw(2)
      << curr_ptr->tm_min << ':' << std::setfill('0') << std::setw(2) << curr_ptr->tm_sec << ' ' << "\t["
-     << boost::this_thread::get_id() << "]\t";
+     << std::this_thread::get_id() << "]\t";
   return os;
 }
 
@@ -223,8 +230,8 @@ struct CerrStreamBlocker : public std::ostream {
 class CerrLocker {
   // some people allocate memory from under their trace code. For example by using boost::format.
   // if memory control is on, we don't want them to be dead-locked on their own thread cerrMutex_.
-  static boost::recursive_mutex             cerrMutex_;
-  boost::lock_guard<boost::recursive_mutex> lock_;
+  static std::recursive_mutex             cerrMutex_;
+  std::lock_guard<std::recursive_mutex> lock_;
   boost::io::ios_base_all_saver             ias_;
 
 public:

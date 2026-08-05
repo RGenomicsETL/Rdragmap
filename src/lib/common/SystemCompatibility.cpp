@@ -18,7 +18,6 @@
 #include <new>
 
 #include <boost/format.hpp>
-#include <boost/thread.hpp>
 
 #include "common/Debug.hpp"
 #include "common/Exceptions.hpp"
@@ -81,7 +80,7 @@ namespace common {
 
 std::string pathStringToStdString(const PathStringType& pathString)
 {
-  return boost::filesystem::path(pathString).string();
+  return std::filesystem::path(pathString).string();
 }
 
 int getTerminalWindowSize(unsigned short int& ws_row, unsigned short int& ws_col)
@@ -172,13 +171,13 @@ uint64_t getFileSize(const PathCharType* filePath)
   return buffer.st_size;
 }
 
-boost::filesystem::path getModuleFileName()
+std::filesystem::path getModuleFileName()
 {
   const DWORD bufsize = 10240;
   char        buffer[bufsize];
   ::GetModuleFileNameA(nullptr, buffer, bufsize);
 
-  return boost::filesystem::path(buffer);
+  return std::filesystem::path(buffer);
 }
 
 void configureMemoryManagement(const bool disableMultipleArenas, const bool disableFastbins) {}
@@ -351,14 +350,14 @@ uint64_t getFileSize(const PathCharType* filePath)
 #endif
 }
 
-boost::filesystem::path getModuleFileName()
+std::filesystem::path getModuleFileName()
 {
   char szBuffer[10240];
   int readBytes = readlink("/proc/self/exe", szBuffer, sizeof(szBuffer));
   DRAGEN_OS_ASSERT_MSG(-1 != readBytes, "TODO: handle the readlink error: " << errno);
   // readlink does not zero-terminate the string.
   szBuffer[readBytes] = 0;
-  return boost::filesystem::path(szBuffer);
+  return std::filesystem::path(szBuffer);
 }
 
 }  // namespace common
@@ -416,7 +415,7 @@ bool ulimitV(uint64_t* pLimit)
 
 #if 0
 
-static boost::mutex block_malloc_hook_mutex_;
+static std::mutex block_malloc_hook_mutex_;
 
 static void* (*old_malloc_hook_)(size_t, const void*) = 0;
 static bool (*user_hook_)(size_t size, const void *caller) = 0;
@@ -424,7 +423,7 @@ static bool (*user_hook_)(size_t size, const void *caller) = 0;
 unsigned mallocCount_(0);
 static void * malloc_hook(size_t size, const void *caller)
 {
-    boost::unique_lock<boost::mutex> lock(block_malloc_hook_mutex_);
+    std::unique_lock<std::mutex> lock(block_malloc_hook_mutex_);
     ++mallocCount_;
 
     __malloc_hook = old_malloc_hook_;
@@ -448,7 +447,7 @@ static void * malloc_hook(size_t size, const void *caller)
 
 void hookMalloc(bool (*hook)(size_t size, const void *caller))
 {
-    boost::unique_lock<boost::mutex> lock(block_malloc_hook_mutex_);
+    std::unique_lock<std::mutex> lock(block_malloc_hook_mutex_);
 
     assert(__malloc_hook != malloc_hook);
     assert(!user_hook_);
@@ -462,7 +461,7 @@ void hookMalloc(bool (*hook)(size_t size, const void *caller))
 
 unsigned unhookMalloc(bool (*hook)(size_t size, const void *caller))
 {
-    boost::unique_lock<boost::mutex> lock(block_malloc_hook_mutex_);
+    std::unique_lock<std::mutex> lock(block_malloc_hook_mutex_);
 
     assert(__malloc_hook == malloc_hook);
     assert(user_hook_ == hook);

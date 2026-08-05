@@ -12,7 +12,7 @@
 
 #include <unistd.h>
 #include <limits>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include "dragen_exception.hpp"
 #include "infra_linux_utils.hpp"
@@ -35,14 +35,14 @@ void getBuildConfigPath(std::string& filePath)
 {
   const std::string configDir = "config/";
   getBuildPath(filePath, configDir);
-  ASSERT(boost::filesystem::exists(filePath), filePath, " does not exist");
+  ASSERT(std::filesystem::exists(filePath), filePath, " does not exist");
 }
 
 // Get the filePath to be relative to the current user's build system directory.
 //
 void getBuildPath(std::string& filePath, const std::string& subDir)
 {
-  boost::filesystem::path dragen_exe_dir = infra::getExecutableDirectory();
-  boost::filesystem::path p(filePath);
+  std::filesystem::path dragen_exe_dir = infra::getExecutableDirectory();
+  std::filesystem::path p(filePath);
   filePath = dragen_exe_dir.parent_path().string() + "/" + subDir + p.filename().string();
 }

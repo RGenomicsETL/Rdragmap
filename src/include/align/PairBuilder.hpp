@@ -19,7 +19,7 @@
 #include <functional>
 #include <vector>
 
-#include <boost/filesystem.hpp>
+
 
 #include "align/AlignmentGenerator.hpp"
 #include "align/Alignments.hpp"

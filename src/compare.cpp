@@ -13,7 +13,7 @@
 #include <vector>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/functional/hash.hpp>
 #include <boost/program_options.hpp>
 
@@ -135,7 +135,7 @@ void compareSupplementary(SamBuffer& refSamBuffer, SamBuffer& newSamBuffer, Stat
 void makeMismatchFiles(
     const std::string&                                    tag,
     const std::string&                                    fileSuffix,
-    const boost::filesystem::path&                        outputDirectory,
+    const std::filesystem::path&                          outputDirectory,
     std::map<std::string, std::shared_ptr<std::ostream>>& tagMismatch)
 {
   tagMismatch.emplace(
@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
   // getSamRecords(is[1], samRecords[1], nextRecords[1]))
   std::ofstream                 positionMismatch;
   std::ofstream                 positionMismatchReference;
-  const boost::filesystem::path outputDirectory = vm["output"].as<std::string>();
+  const std::filesystem::path outputDirectory = vm["output"].as<std::string>();
   if (vm["position-mismatches"].as<bool>()) {
     positionMismatch.open((outputDirectory / "positionMismatch.sam").c_str());
     positionMismatchReference.open((outputDirectory / "positionMismatchReference.sam").c_str());
@@ -802,7 +802,7 @@ std::ostream& operator<<(std::ostream& os, const Sam& sam)
 void Statistics::write(const std::string outputDirectory) const
 {
   std::cerr << "writing into " << outputDirectory << std::endl;
-  const boost::filesystem::path path = outputDirectory;
+  const std::filesystem::path path = outputDirectory;
   {
     std::ofstream os((path / "unmapped.csv").c_str());
     if (!(os << "missing,extra\n" << missing << "," << extra << std::endl)) {

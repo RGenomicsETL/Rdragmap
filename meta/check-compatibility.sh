@@ -85,15 +85,18 @@ compare_case paired -1 "$TMP/portable/data/tiny/repeat-1X-interleaved.fastq" --i
   --Aligner.pe-stat-mean-insert 70 --Aligner.pe-stat-stddev-insert 10 \
   --Aligner.pe-stat-quartiles-insert '60 70 80' --Aligner.pe-stat-mean-read-len 66
 
+DISASSEMBLY="$TMP/object.disassembly"
 if [[ -f "$TMP/auto/build/release/ssw_ssw/ssw_avx2.o" ]]; then
-  objdump -d "$TMP/auto/build/release/ssw_ssw/ssw_avx2.o" |
-    grep -Eq '\b(vzeroupper|ymm[0-9]+)\b'
+  objdump -d "$TMP/auto/build/release/ssw_ssw/ssw_avx2.o" >"$DISASSEMBLY"
+  grep -Eq '\b(vzeroupper|ymm[0-9]+)\b' "$DISASSEMBLY"
 fi
 while IFS= read -r -d '' object; do
-  if [[ $(basename "$object") != ssw_avx2.o ]] &&
-    objdump -d "$object" | grep -Eq '\b(vzeroupper|ymm[0-9]+|zmm[0-9]+)\b'; then
-    echo "unexpected AVX instruction in $object" >&2
-    exit 1
+  if [[ $(basename "$object") != ssw_avx2.o ]]; then
+    objdump -d "$object" >"$DISASSEMBLY"
+    if grep -Eq '\b(vzeroupper|ymm[0-9]+|zmm[0-9]+)\b' "$DISASSEMBLY"; then
+      echo "unexpected AVX instruction in $object" >&2
+      exit 1
+    fi
   fi
 done < <(find "$TMP/auto/build/release" -name '*.o' -print0)
 
