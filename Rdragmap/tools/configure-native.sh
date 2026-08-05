@@ -71,11 +71,15 @@ args <- commandArgs(trailingOnly = TRUE)
 utils::untar(args[[1L]], exdir = args[[2L]])
 ' "$archive" "$source_root"
 
-run_make() {
+run_make() (
+  # R's compiler variables select the toolchain. Imported DRAGMAP flags are
+  # intentionally self-contained: an ambient R CXXFLAGS such as -Wpedantic
+  # would otherwise be promoted to an imported-source error by -Werror.
+  unset CFLAGS CXXFLAGS CPPFLAGS
   # R CMD config MAKE may contain implementation-specific arguments.
   # shellcheck disable=SC2086
   $make_command "$@"
-}
+)
 
 native_executable="$source_root/build/release/dragen-os"
 echo "Building Rdragmap dragen-os with $make_jobs make jobs"

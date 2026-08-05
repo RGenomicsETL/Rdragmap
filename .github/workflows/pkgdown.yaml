@@ -44,7 +44,7 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           working-directory: Rdragmap
-          extra-packages: any::pkgdown, local::.
+          extra-packages: any::pkgdown
           needs: website
           install-pandoc: false
 
