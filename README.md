@@ -7,10 +7,11 @@ Rdragmap is a history-preserving hard fork of
 [sounkou-bioinfo/DRAGMAP](https://github.com/sounkou-bioinfo/DRAGMAP),
 starting from commit `4f98e00e2aedc85e27ea6c118cf7b16663036c14`. It
 preserves imported DRAGMAP mapping behavior while making the native
-build portable and suitable for a future R package wrapper.
+build portable and exposing a source-built R package wrapper.
 
-The native command remains `dragen-os`. The R package interface is not
-yet implemented.
+The native command remains `dragen-os`. The package in
+[`Rdragmap/`](Rdragmap/) owns its installed executable and exposes
+index-generation and FASTQ-to-SAM R operations without searching `PATH`.
 
 ## Current status
 
@@ -137,13 +138,21 @@ generator is absent and mapper liftover handling remains incomplete.
 Rdragmap does not claim graph reference or full ALT-aware mapping
 behavior.
 
-## R package work
+## R package wrapper
 
-The planned package will own and discover its installed executable,
-expose a small R API, use tinytest, and preserve this native
-compatibility contract. Native correctness evidence is being recorded
-before package implementation so wrapper failures can be distinguished
-from mapper changes.
+[`Rdragmap/`](Rdragmap/) is a source-built R package that owns and
+discovers its installed `dragen-os` executable without searching `PATH`.
+It exposes explicit, typed R operations to build a v8 reference index
+and align single or paired FASTQ to SAM. The wrapper records native
+mapping metrics and paired-end insert statistics beside the requested
+SAM output.
+
+The package preserves the child-process boundary because the native
+archives are internal link units, not a supported R ABI. `Rdragmap` has
+a reproducible native source closure, configure-time compilation with
+R’s compiler and make, roxygen-generated documentation, tinytest
+coverage, and tarball-based checks. See
+[`Rdragmap/README.md`](Rdragmap/README.md) for installation and use.
 
 ## Attribution and license
 

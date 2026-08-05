@@ -1,0 +1,107 @@
+
+<!-- Generated as README.md from README.Rmd. Edit README.Rmd. -->
+
+# Rdragmap
+
+Rdragmap builds the portable Rdragmap `dragen-os` executable during
+package installation and invokes that installed executable through
+explicit argument vectors. It never searches `PATH` and does not expose
+DRAGMAP’s internal static archives as an R ABI.
+
+The wrapper currently supports DRAGMAP v8 reference generation and FASTQ
+to SAM alignment. Native behavior and intentional native corrections are
+documented in the parent repository’s `CONFORMANCE.md` and `ERRATA.md`.
+
+## Installation requirements
+
+Installation requires a Unix-like system, GNU Make, a C++17 compiler,
+zlib, bzip2, and development files for Boost Iostreams and Program
+Options. The package’s `configure` script uses the compiler and make
+program reported by R, then builds only the package-owned `dragen-os`
+child executable.
+
+## Use
+
+All file paths are absolute. Build an index into a directory that does
+not yet exist:
+
+``` r
+library(Rdragmap)
+
+native <- rdragmap_executables()
+built <- rdragmap_build_index(
+  reference_fasta = "/data/reference.fa",
+  index_directory = "/data/reference.rdragmap",
+  executables = native,
+  threads = 2L
+)
+stopifnot(!rdragmap_is_error(built))
+```
+
+Align single-end or paired FASTQ. SAM, native mapping metrics, and, for
+paired input, insert-size statistics are written beside `output_sam`.
+
+``` r
+aligned <- rdragmap_align(
+  index = built@index,
+  read1 = "/data/reads_1.fastq.gz",
+  read2 = "/data/reads_2.fastq.gz",
+  output_sam = "/data/sample.sam",
+  executables = native,
+  read_group_id = "sample-1",
+  sample_name = "sample-1",
+  threads = 2L
+)
+stopifnot(!rdragmap_is_error(aligned))
+```
+
+## Installed miniature example
+
+The package ships a tiny FASTA and FASTQ for a complete local smoke
+workflow. It creates all generated files under a temporary directory and
+removes them when finished.
+
+``` r
+work <- tempfile("rdragmap-example-")
+dir.create(work)
+
+built <- rdragmap_build_index(
+  reference_fasta = system.file("extdata", "tiny.fasta", package = "Rdragmap"),
+  index_directory = file.path(work, "index"),
+  threads = 1L,
+  hash_size = "16MB"
+)
+stopifnot(!rdragmap_is_error(built))
+
+aligned <- rdragmap_align(
+  index = built@index,
+  read1 = system.file("extdata", "one.fastq", package = "Rdragmap"),
+  output_sam = file.path(work, "tiny.sam"),
+  read_group_id = "tiny",
+  sample_name = "tiny",
+  threads = 1L,
+  enable_sampling = FALSE
+)
+stopifnot(!rdragmap_is_error(aligned))
+unlink(work, recursive = TRUE, force = TRUE)
+```
+
+Expected environmental and process failures are returned as
+`RdragmapErrorValue` subclasses with stable `@code` fields. Invalid
+argument contracts signal `rdragmap_contract_violation()` conditions.
+
+## Development
+
+From this package directory:
+
+``` sh
+make bootstrap
+make rd
+make build
+make test
+make check
+```
+
+`make bootstrap` creates `tools/dragmap-source.tar.xz`, the exact native
+source closure used by `configure`. `make source-audit` verifies its
+members against the source manifest.

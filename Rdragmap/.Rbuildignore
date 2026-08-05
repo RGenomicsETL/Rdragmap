@@ -1,0 +1,8 @@
+^.*\.Rcheck$
+^.*\.tar\.gz$
+^tools/dragmap-build$
+^\.DS_Store$
+^\.Rproj\.user$
+^\.git$
+^docs$
+^inst/dragen/bin/dragen-os(\.exe)?$

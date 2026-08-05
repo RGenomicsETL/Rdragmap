@@ -1,0 +1,60 @@
+name: Native
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  build:
+    name: ${{ matrix.id }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: portable
+            make_args: HAS_GTEST=0 DRAGMAP_HAVE_AVX2=0
+          - id: auto-dispatch
+            make_args: HAS_GTEST=0
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libbz2-dev \
+            libboost-iostreams-dev \
+            libboost-program-options-dev \
+            zlib1g-dev
+
+      - name: Build native executable
+        run: |
+          make clean
+          make ${{ matrix.make_args }}
+
+  test:
+    name: self-contained tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install native test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libbz2-dev \
+            libboost-iostreams-dev \
+            libboost-program-options-dev \
+            libgtest-dev \
+            zlib1g-dev
+
+      - name: Run native test gate
+        run: make test

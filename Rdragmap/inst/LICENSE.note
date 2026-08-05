@@ -1,0 +1,4 @@
+Rdragmap includes a history-preserving DRAGMAP fork and vendored SIMDe and
+striped Smith-Waterman source in tools/dragmap-source.tar.xz. See COPYRIGHT,
+the archive's source notices, and thirdparty/simde/COPYING for attribution and
+license terms.

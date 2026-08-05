@@ -1,0 +1,73 @@
+Package: Rdragmap
+Title: An 'R' Wrapper for Portable 'DRAGMAP' Short-Read Alignment
+Version: 0.0.0.9000
+Authors@R: c(
+    person(
+      given = c("Sounkou", "Mahamane"),
+      family = "Toure",
+      email = "sounkoutoure@gmail.com",
+      role = c("aut", "cre")
+    ),
+    person(
+      given = "Illumina, Inc.",
+      role = c("ctb", "cph"),
+      comment = "DRAGMAP upstream implementation"
+    ),
+    person(
+      given = "Mengyao",
+      family = "Zhao",
+      role = "ctb",
+      comment = "Striped Smith-Waterman implementation"
+    ),
+    person(
+      given = "Boston College",
+      role = "cph",
+      comment = "Striped Smith-Waterman copyright holder"
+    ),
+    person(
+      given = "Evan",
+      family = "Nemerson",
+      role = "cph",
+      comment = "SIMDe copyright holder"
+    ),
+    person(
+      given = "Boost Software Authors",
+      role = c("ctb", "cph"),
+      comment = "Boost C++ Libraries authors and copyright holders"
+    )
+  )
+Description: Builds the pinned in-tree 'DRAGMAP' hash-table generator and
+    short-read aligner with a portable baseline and runtime-gated AVX2 on
+    supported x86 processors. Stateless R functions build reference indexes
+    and align FASTQ input through one package-owned executable without
+    searching 'PATH'. The same source also compiles for AArch64, where 'SIMDe'
+    maps the imported 128-bit vector operations to NEON.
+License: GPL-3
+Encoding: UTF-8
+Language: en-US
+Depends:
+    R (>= 4.4.0)
+Imports:
+    processx (>= 3.8.0),
+    S7 (>= 0.2.0)
+Suggests:
+    tinytest
+SystemRequirements: A Unix-like system, GNU make, a C++17 compiler, zlib,
+    bzip2, Boost Iostreams development files, and Boost Program Options
+    development files
+OS_type: unix
+Additional_repositories: https://rgenomicsetl.r-universe.dev
+URL: https://github.com/RGenomicsETL/Rdragmap,
+    https://rgenomicsetl.github.io/Rdragmap/
+BugReports: https://github.com/RGenomicsETL/Rdragmap/issues
+Roxygen: list(markdown = TRUE)
+Config/roxygen2/version: 8.0.0
+Config/Needs/website: pkgdown
+Collate:
+    'validation.R'
+    'results.R'
+    'process.R'
+    'executable.R'
+    'reference.R'
+    'align.R'
+    'Rdragmap-package.R'

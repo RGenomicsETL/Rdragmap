@@ -5,3 +5,9 @@ build/
 *.d
 *.Td
 *.failed
+Rdragmap/*.tar.gz
+Rdragmap/*.Rcheck/
+Rdragmap/tools/dragmap-build/
+Rdragmap/inst/dragen/bin/dragen-os
+Rdragmap/inst/dragen/bin/dragen-os.exe
+Rdragmap/docs/

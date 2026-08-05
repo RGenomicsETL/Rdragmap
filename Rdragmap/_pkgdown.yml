@@ -1,0 +1,27 @@
+url: https://rgenomicsetl.github.io/Rdragmap/
+
+template:
+  bootstrap: 5
+
+reference:
+  - title: Native executable
+    contents:
+      - RdragmapExecutables
+      - rdragmap_executables
+  - title: Reference indexes
+    contents:
+      - RdragmapIndex
+      - rdragmap_index
+      - rdragmap_build_index
+  - title: Alignment
+    contents:
+      - rdragmap_align
+      - RdragmapAlignmentResult
+  - title: Results and errors
+    contents:
+      - RdragmapRunResult
+      - RdragmapIndexBuildResult
+      - RdragmapErrorValue
+      - rdragmap_error_value
+      - rdragmap_is_error
+      - rdragmap_contract_violation

@@ -93,6 +93,15 @@ The headers named in Illumina issue 63 now include `<cstdint>` directly
 instead of relying on transitive includes. This changes compilation
 only.
 
+### E-007: Hash-generator host-version prototype
+
+The imported generator calls `getHostVersion(0)` although its declared
+and implemented C signature has no parameter. Modern C compilers reject
+that call. Rdragmap calls `getHostVersion()` with the matching
+signature. This changes compilation only. The package source-tarball
+installation and both clean native build variants compile the generator
+as the regression check.
+
 ## ALT-contig limitation
 
 The README’s `--ht-mask-bed` path is implemented, not a no-op. During
