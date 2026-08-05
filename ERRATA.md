@@ -63,7 +63,11 @@ counter defects:
   operation, undercounting splice, indel, clipping, and Q30 metrics and risking
   iterator overrun when the skip was last;
 - the unknown edit distance `-1` from an unmapped read was added to an unsigned
-  counter and reported as `18446744073709551615` mismatches.
+  counter and reported as `18446744073709551615` mismatches;
+- same-contig pairs use the internal `nextReference == -1` sentinel that emits
+  SAM `RNEXT` as `=`, but the metrics adapter interpreted the sentinel as a
+  different chromosome. On the executed HG02088 exome this falsely reported
+  every one of 20,165,314 mapped paired reads as interchromosomal.
 
 Rdragmap tests these counters directly. DRAGMAP still does not perform duplicate
 marking; duplicate metrics describe flags already present in input records.

@@ -84,6 +84,29 @@ TEST(MappingStats, CountAllIncludesDuplicateCounters)
   EXPECT_EQ(1U, stats.m_numDuplicatesRemoved);
 }
 
+TEST(MappingStats, SamEqualsMateReferenceIsSameContig)
+{
+  std::ostringstream log;
+  ReadGroupAlignmentCounts stats(log);
+  auto alignment = mappedAlignment();
+  alignment.setFlags(
+      dragenos::align::AlignmentHeader::MULTIPLE_SEGMENTS |
+      dragenos::align::AlignmentHeader::ALL_PROPERLY_ALIGNED);
+  SerializedRecord sameContig(alignment, 10);
+
+  stats.addRecord(sameContig.serializedAlignment(), sameContig.serializedRead());
+  EXPECT_EQ(0U, stats.m_pairedReadDiffContig);
+  EXPECT_EQ(0U, stats.m_pairedReadDiffContigMapq10);
+
+  ReadGroupAlignmentCounts differentStats(log);
+  alignment.setNextReference(1);
+  SerializedRecord differentContig(alignment, 10);
+  differentStats.addRecord(
+      differentContig.serializedAlignment(), differentContig.serializedRead());
+  EXPECT_EQ(1U, differentStats.m_pairedReadDiffContig);
+  EXPECT_EQ(1U, differentStats.m_pairedReadDiffContigMapq10);
+}
+
 TEST(MappingStats, UnmappedUnknownEditDistanceDoesNotUnderflow)
 {
   std::ostringstream log;

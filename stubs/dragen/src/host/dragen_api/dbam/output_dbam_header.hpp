@@ -87,7 +87,10 @@ public:
   short getSequenceLen() const { return read_.getReadLen(); }
 
   bool isMateOnSameContig() const {
-    return alignment_.getReference() == alignment_.getNextReference();
+    // AlignmentUtils leaves nextReference at -1 to encode SAM RNEXT "=" and
+    // stores an explicit reference only when the mate is on another contig.
+    return alignment_.getNextReference() < 0 ||
+           alignment_.getReference() == alignment_.getNextReference();
   }
 
   bool isDisqualified() const { return (alignment_.hasFailedFilters()); }
