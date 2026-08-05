@@ -3,6 +3,12 @@
 
 # Rdragmap
 
+<!-- badges: start -->
+
+[![R-CMD-check](https://github.com/RGenomicsETL/Rdragmap/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/RGenomicsETL/Rdragmap/actions/workflows/R-CMD-check.yaml)
+[![R-universe](https://rgenomicsetl.r-universe.dev/badges/Rdragmap)](https://rgenomicsetl.r-universe.dev/Rdragmap)
+<!-- badges: end -->
+
 Rdragmap builds the portable Rdragmap `dragen-os` executable during
 package installation and invokes that installed executable through
 explicit argument vectors. It never searches `PATH` and does not expose
