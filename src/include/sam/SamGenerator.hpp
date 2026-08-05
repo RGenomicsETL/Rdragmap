@@ -16,6 +16,7 @@
 #define ALIGN_SAM_HPP
 
 #include <boost/range/adaptor/reversed.hpp>
+#include <boost/range/iterator_range.hpp>
 #include <iostream>
 
 #include "align/Mapq.hpp"

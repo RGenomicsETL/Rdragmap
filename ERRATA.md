@@ -114,6 +114,16 @@ header, and package configuration invokes it with the native executable
 build. The source-tarball package check and clean native builds are the
 regression checks.
 
+### E-009: Iterator-range header dependencies
+
+`Mapper.cpp` and `SamGenerator.hpp` use `boost::make_iterator_range()`
+without including `<boost/range/iterator_range.hpp>`, its defining
+header. Older Boost include ordering masked the omission, but the
+r-universe build with Boost 1.90 rejected `Mapper.cpp`. Rdragmap
+includes the defining header at each use site. This changes compilation
+only. The source-tarball package check and clean native builds compile
+the mapper and SAM generator as the regression checks.
+
 ## ALT-contig limitation
 
 The README’s `--ht-mask-bed` path is implemented, not a no-op. During
