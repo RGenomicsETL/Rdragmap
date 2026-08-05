@@ -109,8 +109,10 @@ as the regression check.
 ordering usually masked that dependency, but a package build can include
 it before a Boost exception header and then fails to compile. Rdragmap
 includes the defining header directly. This changes compilation only.
-The source-tarball package check and clean native builds compile the
-affected workflow objects as the regression check.
+`check-debug-header` compiles that header before every other project
+header, and package configuration invokes it with the native executable
+build. The source-tarball package check and clean native builds are the
+regression checks.
 
 ## ALT-contig limitation
 

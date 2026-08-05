@@ -108,9 +108,10 @@ build variants compile the generator as the regression check.
 `<boost/current_function.hpp>`, its defining header. Imported include ordering
 usually masked that dependency, but a package build can include it before a
 Boost exception header and then fails to compile. Rdragmap includes the defining
-header directly. This changes compilation only. The source-tarball package
-check and clean native builds compile the affected workflow objects as the
-regression check.
+header directly. This changes compilation only. `check-debug-header` compiles
+that header before every other project header, and package configuration invokes
+it with the native executable build. The source-tarball package check and clean
+native builds are the regression checks.
 
 ## ALT-contig limitation
 
