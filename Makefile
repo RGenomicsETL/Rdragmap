@@ -35,10 +35,17 @@ help-targets:
 	@$(ECHO) 'Help:      help help-targets'
 	@$(ECHO) 'Cleanup:   clean'
 	@$(ECHO) 'Install:   install'
+	@$(ECHO) 'Docs:      docs'
 	@$(ECHO) 'SIMD:      simd-info'
 	@$(ECHO) 'Compile:   native-libraries'
+	@$(ECHO) 'Test:      test'
 	@$(ECHO) 'Validate:  compatibility-check'
 	@$(ECHO) 'Libraries: $(library_targets)'
+
+R_SCRIPT?=Rscript
+.PHONY: docs
+docs:
+	$(R_SCRIPT) $(DRAGEN_OS_ROOT_DIR)/meta/render-docs.R
 
 .PHONY: simd-info
 simd-info:
