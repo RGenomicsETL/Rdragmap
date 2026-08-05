@@ -540,7 +540,7 @@ void* strScanThreadMultBase(void* ctxPtr)
             seed       = (fwSeed < rcSeed ? fwSeed : rcSeed) | (anchorBin << anchorShift);
             palindrome = (fwSeed == rcSeed);
             // CRC32c hash the seed
-            hash = crc32c_hw(0, (const unsigned char*)seedPtr, 8);
+            hash = crc32c_raw(0, (const unsigned char*)seedPtr, 8);
             // Add reference sequence ID in anchored mode, to separate difference sequences
             hash += anchorRefSeq;
             // Obtain a lock corresponding to a 20-bit segment of the hash
@@ -712,7 +712,7 @@ void* strScanThread(void* ctxPtr)
         if (!seedIn) {
           ctx->validSeeds++;
           // CRC32c hash the seed
-          hash = crc32c_hw(0, (const unsigned char*)seedPtr, 8);
+          hash = crc32c_raw(0, (const unsigned char*)seedPtr, 8);
           // Add reference sequence ID in anchored mode, to separate difference sequences
           hash += anchorRefSeq;
           // Obtain a lock corresponding to a 20-bit segment of the hash

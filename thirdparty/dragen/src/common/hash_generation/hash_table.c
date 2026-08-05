@@ -2813,10 +2813,10 @@ char* buildHashTable(
       pthread_mutex_lock(&lock);
 #endif
       for (k = 0; k < chunkRecords; k++, recp++) {
-        hashDigest = crc32c_hw(hashDigest, (const unsigned char*)recp, 8);
+        hashDigest = crc32c_raw(hashDigest, (const unsigned char*)recp, 8);
       }
       for (k = 0; k < numExtendHitRecs; k++, extendHitRecs++) {
-        extTabDigest = crc32c_hw(extTabDigest, (const unsigned char*)extendHitRecs, 8);
+        extTabDigest = crc32c_raw(extTabDigest, (const unsigned char*)extendHitRecs, 8);
       }
 #if defined(_TARGET_PPC_)
       pthread_mutex_unlock(&lock);

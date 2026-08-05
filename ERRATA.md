@@ -19,7 +19,11 @@ check succeeds.
 On local aarch64 builds, upstream hash-generation branches leave CRC result
 variables uninitialized and compile the x86 `rdtsc` instruction. Rdragmap uses
 the existing portable CRC32C implementation on those targets and confines the
-diagnostic cycle counter to x86. These corrections preserve x86 hash bytes.
+diagnostic cycle counter to x86. Hash-table CRC fields require the raw x86
+`crc32q` state transition rather than conventional complemented CRC-32C;
+`crc32c_raw()` applies that distinction explicitly. A fixed-vector regression
+and full hs37d5 artifact comparison preserve the imported hash bytes and digest
+fields.
 
 ### Explicit hash-table sizing
 

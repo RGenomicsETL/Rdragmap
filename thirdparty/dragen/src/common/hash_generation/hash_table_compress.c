@@ -1601,7 +1601,7 @@ uint32_t decompHashTableDigest(decompHashTableCtx_t* ctx)
   uint64_t* e      = (uint64_t*)ctx->hashTable + ctx->hashRecs;
   uint64_t  digest = 0;
   for (; p != e; p++) {
-    digest = crc32c_hw(digest, (const unsigned char*)p, 8);
+    digest = crc32c_raw(digest, (const unsigned char*)p, 8);
   }
   return (uint32_t)digest;
 }
@@ -1612,7 +1612,7 @@ uint32_t decompExtendTableDigest(decompHashTableCtx_t* ctx)
   uint64_t* e      = (uint64_t*)ctx->extendTable + ctx->extendRecs;
   uint64_t  digest = 0;
   for (; p != e; p++) {
-    digest = crc32c_hw(digest, (const unsigned char*)p, 8);
+    digest = crc32c_raw(digest, (const unsigned char*)p, 8);
   }
   return (uint32_t)digest;
 }
