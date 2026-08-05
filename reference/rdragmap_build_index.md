@@ -91,7 +91,7 @@ built <- rdragmap_build_index(
 )
 if (!rdragmap_is_error(built)) built@index
 #> <Rdragmap::RdragmapIndex>
-#>  @ directory: chr "/tmp/RtmpLXCFhA/rdragmap-example-206a6215e9f1/index"
+#>  @ directory: chr "/tmp/RtmpWxhPa5/rdragmap-example-2074200b7e18/index"
 unlink(work, recursive = TRUE, force = TRUE)
 # }
 ```
