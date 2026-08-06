@@ -124,6 +124,18 @@ includes the defining header at each use site. This changes compilation
 only. The source-tarball package check and clean native builds compile
 the mapper and SAM generator as the regression checks.
 
+### E-010: Hash-config const-correctness
+
+The hash-config parser stored read-only `strstr()` results in mutable
+pointers. Modern C compilers reject the discarded qualifiers.
+`processComment()` now keeps those search results const.
+`regenHashTableError()` previously also wrote a null terminator through
+its `const char*` input to remove `.bin`; it now copies the prefix into
+a bounded local path before reading the text config. This preserves the
+regeneration message without modifying the caller’s path. The
+source-tarball package check and clean native builds compile the
+hash-config parser as the regression checks.
+
 ## ALT-contig limitation
 
 The README’s `--ht-mask-bed` path is implemented, not a no-op. During

@@ -158,7 +158,7 @@ uint32_t getNumRefSeqs(const char* filename)
 //
 void processComment(const char* line, const size_t lineNum, hashTableConfig_t* config)
 {
-  char* match;
+  const char* match;
 
   if (lineNum == 1) {
     // Extract host software version
@@ -457,14 +457,21 @@ void regenHashTableError(const char* binFile, const char* liftoverFile)
 {
   // binfile is an earlier version of hash_table.cfg that cannot be read, but
   // we can try to read the .txt file
-  char* ext = strstr(binFile, ".bin");
+  const char* ext = strstr(binFile, ".bin");
   if (!ext) {
     return;
   }
 
-  *ext = '\0';
+  const size_t cfgFileLength = (size_t)(ext - binFile);
+  char         cfgFile[PATH_MAX];
+  if (cfgFileLength >= sizeof(cfgFile)) {
+    return;
+  }
+  memcpy(cfgFile, binFile, cfgFileLength);
+  cfgFile[cfgFileLength] = '\0';
+
   hashTableConfig_t config;
-  if (!readHashCfgTxt(binFile, &config)) {
+  if (!readHashCfgTxt(cfgFile, &config)) {
     return;
   }
 
