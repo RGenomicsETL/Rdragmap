@@ -37,6 +37,7 @@ help-targets:
 	@$(ECHO) 'Install:   install'
 	@$(ECHO) 'Docs:      docs'
 	@$(ECHO) 'SIMD:      simd-info'
+	@$(ECHO) 'Pedantic:  pedantic'
 	@$(ECHO) 'Compile:   native-libraries'
 	@$(ECHO) 'Test:      test'
 	@$(ECHO) 'Validate:  compatibility-check'
@@ -52,6 +53,10 @@ simd-info:
 	@$(ECHO) 'compiler target: ' "$$($(CXX) -dumpmachine 2>/dev/null || echo unknown)"
 	@$(ECHO) 'portable SIMDe baseline: yes'
 	@$(ECHO) 'native AVX2 SSW object: $(DRAGMAP_HAVE_AVX2)'
+
+.PHONY: pedantic
+pedantic:
+	$(DRAGEN_OS_ROOT_DIR)/meta/check-pedantic.sh
 
 .PHONY: compatibility-check
 compatibility-check:

@@ -4,6 +4,8 @@ rdragmap_source_files <- function(repo_root) {
     "Makefile",
     "config.mk",
     "make",
+    "meta/check-pedantic.sh",
+    "meta/pedantic-warnings.txt",
     "meta/probe-avx2.sh",
     "meta/vendor-simde.sh",
     "meta/patches/0001-simde-remove-diagnostic-pragmas.patch",
