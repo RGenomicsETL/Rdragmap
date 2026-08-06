@@ -33,10 +33,10 @@ if ! (
   exit 1
 fi
 
-sed '/^#/d; /^$/d' "$baseline" >"$expected"
+sed '/^#/d; /^$/d' "$baseline" | LC_ALL=C sort -u >"$expected"
 sed -nE 's#^(.+):[0-9]+:[0-9]+: warning:.*(\[-W[^]]+\])$#\1 \2#p' "$log" |
   sed "s#^$root/##" |
-  sort -u >"$actual"
+  LC_ALL=C sort -u >"$actual"
 
 if ! diff -u "$expected" "$actual"; then
   echo "unreviewed pedantic diagnostics; update source or the audited baseline" >&2
