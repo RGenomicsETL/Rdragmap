@@ -133,6 +133,14 @@ the regeneration message without modifying the caller's path. The source-tarball
 package check and clean native builds compile the hash-config parser as the
 regression checks.
 
+### E-011: Run-statistics fixed-width integers
+
+The `RunStats` stub uses `uint32_t` and `uint64_t` but did not include
+`<cstdint>`. A package build with a different standard-library include order
+therefore failed. The stub now includes the defining standard header directly.
+This changes compilation only. `check-stub-header` compiles that header before
+all other project headers during native and package-owned builds.
+
 ## ALT-contig limitation
 
 The README's `--ht-mask-bed` path is implemented, not a no-op. During hash-table

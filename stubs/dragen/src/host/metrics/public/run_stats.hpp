@@ -7,9 +7,10 @@
 
 #pragma once
 
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 //
 // RP: HA! HA! HA! That's what you get when you write code logging to cout all
 // over the place!

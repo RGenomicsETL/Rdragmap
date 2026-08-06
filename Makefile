@@ -82,13 +82,15 @@ POSTCOMPILE ?= mv -f $(@:%.o=%.Td) $(@:%.o=%.d)
 %/.sentinel:
 	@mkdir -p $* && touch $@
 
-# This header uses a Boost diagnostic macro. Compile it before any other
-# project header so an accidental transitive dependency cannot mask a missing
-# direct include in native or package-owned builds.
-.PHONY: check-debug-header
+# These headers previously relied on transitive inclusions. Compile each before
+# any other project header so a package toolchain cannot mask a missing direct
+# dependency.
+.PHONY: check-debug-header check-stub-header
 check-debug-header: $(DRAGEN_OS_BUILD)/.sentinel
 	$(SILENT) printf '%s\n' '#include "common/Debug.hpp"' | $(CXX) $(CPPFLAGS) $(CXXFLAGS) -x c++ -c -o /dev/null -
-all: check-debug-header
+check-stub-header: $(DRAGEN_OS_BUILD)/.sentinel
+	$(SILENT) printf '%s\n' '#include "run_stats.hpp"' | $(CXX) $(CPPFLAGS) $(CXXFLAGS) -x c++ -c -o /dev/null -
+all: check-debug-header check-stub-header
 
 include $(wildcard $(DRAGEN_OS_BUILD)/testRunner.d)
 

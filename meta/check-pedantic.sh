@@ -27,7 +27,7 @@ if ! (
     HAS_GTEST=0 DRAGMAP_HAVE_AVX2=0 \
     DRAGEN_OS_BUILD_DIR_BASE="$work/build" \
     CXXWARNINGS="$cxx_warnings" CWARNINGS="$c_warnings" \
-    native-libraries check-debug-header >"$log" 2>&1
+    native-libraries check-debug-header check-stub-header >"$log" 2>&1
 ); then
   sed -n '1,240p' "$log" >&2
   exit 1

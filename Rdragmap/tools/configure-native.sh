@@ -85,7 +85,7 @@ native_executable="$source_root/build/release/dragen-os"
 echo "Building Rdragmap dragen-os with $make_jobs make jobs"
 run_make -j"$make_jobs" -C "$source_root" \
   HAS_GTEST=0 CC="$cc" CXX="$cxx" AR="$ar" \
-  "$native_executable" check-debug-header
+  "$native_executable" check-debug-header check-stub-header
 
 if [ ! -x "$native_executable" ]; then
   echo "ERROR: native build did not produce dragen-os" >&2
