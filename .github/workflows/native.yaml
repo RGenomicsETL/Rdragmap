@@ -22,6 +22,8 @@ jobs:
             make_args: HAS_GTEST=0 DRAGMAP_HAVE_AVX2=0
           - id: auto-dispatch
             make_args: HAS_GTEST=0
+          - id: clang-portable
+            make_args: HAS_GTEST=0 DRAGMAP_HAVE_AVX2=0 CC=clang CXX=clang++
     steps:
       - uses: actions/checkout@v4
 

@@ -145,6 +145,30 @@ header directly. This changes compilation only. `check-stub-header`
 compiles that header before all other project headers during native and
 package-owned builds.
 
+### E-012: Compiler-probed tuning flags
+
+The imported release build applies GCC-specific optimization flags to
+every C++ compiler. Apple Clang rejects several of these under
+`-Werror`, preventing package installation. Rdragmap probes each
+imported tuning flag with the selected compiler and uses only accepted
+flags, retaining `-O2` and the accepted GCC flags. This changes
+optimization selection only. The local Clang portable build and its
+native CI lane compile the regression path.
+
+### E-013: Clang C and C++ conformance
+
+The imported source also relied on GCC-only atomic builtin spellings,
+diagnostic names, explicit constructor-instantiation syntax,
+variable-length C++ arrays, and unused implementation details accepted
+by GCC. Rdragmap uses the portable `__atomic_exchange_n` builtin with
+the same sequentially consistent order, unsigned byte constants,
+vector-backed temporary BAM buffers, standard template instantiation
+syntax, and explicit `[[maybe_unused]]` annotations. Local-build only
+hash-generation logging counters are no longer calculated. These changes
+preserve byte values and mapping logic while making the C and C++
+sources accepted by Clang. The local Clang portable build and native CI
+lane compile the regression path.
+
 ## ALT-contig limitation
 
 The README’s `--ht-mask-bed` path is implemented, not a no-op. During

@@ -54,7 +54,9 @@
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#if !defined(__clang__)
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 
 #define MAX_LINE (REF_SEQ_END_PAD_BASES + 4096)
 #define MAX_LIFT_LINE (1024 * 1024)
@@ -1141,8 +1143,10 @@ char* generateHashTable(hashTableConfig_t* config, int argc, char* argv[])
   printf("...\n");
   fflush(stdout);
   int32_t   numRefSeqs = -1, origRefSeqs = -1;
-  uint32_t  decoySeqs = 0, decoySeqLen = 0;
-  uint32_t  popAltSeqs = 0, popAltSeqLen = 0;
+  uint32_t  decoySeqs = 0, popAltSeqs = 0;
+#ifndef LOCAL_BUILD
+  uint32_t  decoySeqLen = 0, popAltSeqLen = 0;
+#endif
   uint64_t  curSeqLen = 0, totSeqLen = 0, totRefLen = REF_SEQ_END_PAD_BASES, curBasesNotN = 0;
   uint64_t  refBasesNotN = 0;
   int64_t   adjBasesNotN = 0;
@@ -1302,9 +1306,11 @@ char* generateHashTable(hashTableConfig_t* config, int argc, char* argv[])
           totSeqLen += curSeqLen * !inDecoys;
           totRefLen += r->blockLen;
           decoySeqs += inDecoys;
-          decoySeqLen += inDecoys * curSeqLen;
           popAltSeqs += inPopAlts;
+#ifndef LOCAL_BUILD
+          decoySeqLen += inDecoys * curSeqLen;
           popAltSeqLen += inPopAlts * curSeqLen;
+#endif
           refBasesNotN += curBasesNotN;
 
 #ifndef LOCAL_BUILD
@@ -1431,9 +1437,11 @@ char* generateHashTable(hashTableConfig_t* config, int argc, char* argv[])
 
     totSeqLen *= 2;
     decoySeqs *= 2;
-    decoySeqLen *= 2;
     popAltSeqs *= 2;
+#ifndef LOCAL_BUILD
+    decoySeqLen *= 2;
     popAltSeqLen *= 2;
+#endif
     refBasesNotN *= 2;
     numRefSeqs *= 2;
     origRefSeqs *= 2;

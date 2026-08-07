@@ -178,8 +178,8 @@ private:
       BOOST_THROW_EXCEPTION(BamException("Unable to read l_text from bam stream"));
     }
 
-    char text[l_text];
-    if (!stream_.read(text, l_text)) {
+    std::vector<char> text(l_text);
+    if (!stream_.read(text.data(), l_text)) {
       BOOST_THROW_EXCEPTION(
           BamException(std::string("Unable to read text from bam stream. l_text") << l_text));
     }
@@ -192,8 +192,8 @@ private:
       BOOST_THROW_EXCEPTION(BamException("Unable to read l_text from bam stream"));
     }
 
-    char name[l_name];
-    if (!stream_.read(name, l_name)) {
+    std::vector<char> name(l_name);
+    if (!stream_.read(name.data(), l_name)) {
       BOOST_THROW_EXCEPTION(
           BamException(std::string("Unable to read text from bam stream. l_name") << l_name));
     }

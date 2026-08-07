@@ -35,7 +35,9 @@
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #pragma GCC diagnostic ignored "-Wformat"
 #pragma GCC diagnostic ignored "-Wsequence-point"
+#if !defined(__clang__)
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 
 #ifdef LOCAL_BUILD
 #define DEBUG_TIME 1

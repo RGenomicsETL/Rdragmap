@@ -37,7 +37,9 @@
 #pragma GCC diagnostic ignored "-Wmissing-braces"
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #pragma GCC diagnostic ignored "-Wparentheses"
+#if !defined(__clang__)
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 
 #if defined(_TARGET_PPC_)
