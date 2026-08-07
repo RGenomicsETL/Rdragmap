@@ -30,5 +30,5 @@ rdragmap_executables(directory = character(), dragen_os = character())
 ``` r
 native <- rdragmap_executables()
 if (!rdragmap_is_error(native)) native@dragen_os
-#> [1] "/tmp/Rtmp5TNsUz/temp_libpath20d523dccfc9/Rdragmap/dragen/bin/dragen-os"
+#> [1] "/tmp/RtmpBRk0W5/temp_libpath205825efa672/Rdragmap/dragen/bin/dragen-os"
 ```
