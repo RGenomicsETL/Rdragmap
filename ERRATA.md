@@ -169,6 +169,15 @@ preserve byte values and mapping logic while making the C and C++
 sources accepted by Clang. The local Clang portable build and native CI
 lane compile the regression path.
 
+### E-014: Case-insensitive SIMDe include collision
+
+The SIMDe include root contains the metadata file `VERSION`. On a
+case-insensitive filesystem, `-I thirdparty/simde` lets that file shadow
+the standard C++ header `<version>`, making libc++ fail to parse it.
+Rdragmap now searches the SIMDe root with `-idirafter`, so standard
+headers win while `<simde/...>` remains available. The case-collision
+probe and local Clang build are the regression checks.
+
 ## ALT-contig limitation
 
 The README’s `--ht-mask-bed` path is implemented, not a no-op. During

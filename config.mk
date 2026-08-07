@@ -183,7 +183,9 @@ CPPFLAGS += -I $(SSW_SRC_DIR)
 CPPFLAGS += -I $(DRAGEN_STUBS_DIR)/host/dragen_api -I $(DRAGEN_STUBS_DIR)/host/dragen_api/dbam  
 CPPFLAGS += -I $(DRAGEN_STUBS_DIR)/host/infra/public -I $(DRAGEN_STUBS_DIR)/host/metrics/public
 CPPFLAGS += -I $(BAMTOOLS_STUBS_DIR)/include
-CPPFLAGS += -I $(DRAGEN_THIRDPARTY)/simde
+# SIMDe is a third-party include root. Search it after the standard library so
+# its metadata file named `version` cannot shadow libc++'s <version> header.
+CPPFLAGS += -idirafter $(DRAGEN_THIRDPARTY)/simde
 ifeq (1,$(DRAGMAP_HAVE_AVX2))
 CPPFLAGS += -DDRAGMAP_HAVE_AVX2=1
 endif
