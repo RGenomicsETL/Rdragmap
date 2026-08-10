@@ -201,12 +201,17 @@ Apple libc++ also rejects the imported mixed `std::min()` extent
 operands and construction of `std::vector` iterators from `0`. Rdragmap
 selects `uint64_t` for that extent comparison and value-initializes the
 iterators. Separately, the imported DRAGEN library make rule forced the
-Linux kernel-private `linux/limits.h` header into every metrics
-translation unit. Rdragmap now forces the portable POSIX `limits.h`
-header instead. The changes are recorded in
+Linux kernel-private `linux/limits.h` header into every imported library
+translation unit. An intermediate correction forced POSIX `limits.h`
+instead, but Darwin’s header defines an unrelated `NZERO` macro that
+conflicts with the hash generator’s function-like macro. Within that
+library rule, `hash_cfg_file.c` is the only source that uses `PATH_MAX`,
+and it already includes standard `limits.h` directly. Rdragmap therefore
+no longer forces either header globally. The changes are recorded in
 `meta/patches/0002-macos-package-portability.patch`,
-`meta/patches/0003-apple-clang-aligner-portability.patch`, and
-`meta/patches/0004-portable-limits-header.patch`, all retained in the
+`meta/patches/0003-apple-clang-aligner-portability.patch`,
+`meta/patches/0004-portable-limits-header.patch`, and
+`meta/patches/0005-stop-forced-limits-header.patch`, all retained in the
 package source closure. They affect only build and platform-support
 code, not reference indexes, mapping decisions, or SAM records.
 

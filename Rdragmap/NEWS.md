@@ -1,5 +1,8 @@
 # Rdragmap 0.0.0.9000
 
+- Stop forcing the POSIX limits header into every imported C source because its
+  Darwin `NZERO` macro conflicts with the hash generator under `-Werror`.
+
 - Probe GCC-only C tuning and warning flags separately from C++ tuning flags so
   Apple Clang can compile imported hash-generation sources under `-Werror`.
 

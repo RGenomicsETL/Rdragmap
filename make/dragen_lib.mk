@@ -1,8 +1,4 @@
 
-# Imported metrics code uses PATH_MAX. The standard POSIX limits header is
-# available on Linux and Darwin; the Linux kernel-private header is not.
-DRAGEN_OS_FLAGS := -include limits.h
-
 ifeq (,$(dragen_lib_dirs_aux))
 $(error No library directories specified)
 endif
@@ -33,10 +29,10 @@ $(DRAGEN_OS_BUILD)/drgn_$(lib_dir).a: $(lib_objects)
 # Note: the dependency on $(libraries) is to force the order of compilation to be the same as the order of declaration of the libraries
 $(DRAGEN_OS_BUILD)/drgn_$(lib_dir)/%.o: lib_dir:=$(lib_dir)
 $(DRAGEN_OS_BUILD)/drgn_$(lib_dir)/%.o: $(DRAGEN_SRC_DIR)/$(lib_dir)/%.cpp $(DRAGEN_OS_BUILD)/drgn_$(lib_dir)/%.d $(DRAGEN_OS_BUILD)/drgn_$(lib_dir)/.sentinel
-	$(SILENT) $(CXX) $(DEPFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(DRAGEN_OS_FLAGS) -c -o $@ $< && $(POSTCOMPILE)
+	$(SILENT) $(CXX) $(DEPFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $< && $(POSTCOMPILE)
 
 $(DRAGEN_OS_BUILD)/drgn_$(lib_dir)/%.o: $(DRAGEN_SRC_DIR)/$(lib_dir)/%.c $(DRAGEN_OS_BUILD)/drgn_$(lib_dir)/%.d $(DRAGEN_OS_BUILD)/drgn_$(lib_dir)/.sentinel
-	$(SILENT) $(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) $(DRAGEN_OS_FLAGS) -c -o $@ $< && $(POSTCOMPILE)
+	$(SILENT) $(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -c -o $@ $< && $(POSTCOMPILE)
 
 #$(DRAGEN_OS_BUILD)/$(lib_dir)/%.d: ;
 
