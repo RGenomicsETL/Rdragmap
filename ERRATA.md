@@ -193,12 +193,26 @@ The imported platform code also assumed Linux paths and allocator
 controls. Rdragmap uses Darwin’s executable-path and `sysctl` facilities
 where needed, leaves glibc-only allocator tuning inactive on Darwin, and
 lets the selected C++ driver select its compatible standard library
-rather than forcing `-lstdc++`. These changes affect only build and
-platform-support code, not reference indexes, mapping decisions, or SAM
-records. The package source archive audit, a package installation using
-a simulated R-universe Boost prefix, both clean native builds, and the
-tarball-based package check are the local regression checks. The
-dedicated macOS CI lane executes the package path with Apple Clang.
+rather than forcing `-lstdc++`.
+
+Apple libc++ also rejects the imported mixed `std::min()` extent
+operands and construction of `std::vector` iterators from `0`. Rdragmap
+selects `uint64_t` for that extent comparison and value-initializes the
+iterators. Separately, the imported DRAGEN library make rule forced the
+Linux kernel-private `linux/limits.h` header into every metrics
+translation unit. Rdragmap now forces the portable POSIX `limits.h`
+header instead. The changes are recorded in
+`meta/patches/0002-macos-package-portability.patch`,
+`meta/patches/0003-apple-clang-aligner-portability.patch`, and
+`meta/patches/0004-portable-limits-header.patch`, all retained in the
+package source closure. They affect only build and platform-support
+code, not reference indexes, mapping decisions, or SAM records.
+
+The package source archive audit, a package installation using a
+simulated R-universe Boost prefix, both clean native builds, the local
+Clang native build, and the tarball-based package check are the local
+regression checks. The dedicated macOS CI lane executes the package path
+with Apple Clang.
 
 ## ALT-contig limitation
 
