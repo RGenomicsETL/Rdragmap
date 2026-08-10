@@ -1,0 +1,60 @@
+# Rdragmap patch: portable static-archive options
+# Base: 522735d215363177939630102e820e4df53ee0a8
+# Purpose: stop requesting GNU ar's filename-truncation option when creating
+# imported static libraries because Darwin ar rejects it; retain the portable
+# create, replace, and symbol-index operations.
+# Regression: build all imported static libraries with GNU ar, verify their
+# indexes, and require the macOS R CMD check package job to pass with Darwin ar.
+
+diff --git a/make/dragen_lib.mk b/make/dragen_lib.mk
+index 149ad2a..ab9d443 100755
+--- a/make/dragen_lib.mk
++++ b/make/dragen_lib.mk
+@@ -24,7 +24,7 @@ include $(wildcard $(lib_objects:%.o=%.d))
+ ###
+ $(DRAGEN_OS_BUILD)/drgn_$(lib_dir).a: lib_objects:=$(lib_objects)
+ $(DRAGEN_OS_BUILD)/drgn_$(lib_dir).a: $(lib_objects)
+-	$(SILENT) $(AR) crfs $@ $(lib_objects)
++	$(SILENT) $(AR) crs $@ $(lib_objects)
+ 
+ # Note: the dependency on $(libraries) is to force the order of compilation to be the same as the order of declaration of the libraries
+ $(DRAGEN_OS_BUILD)/drgn_$(lib_dir)/%.o: lib_dir:=$(lib_dir)
+diff --git a/make/dragen_stub_lib.mk b/make/dragen_stub_lib.mk
+index 625f69b..54bfc96 100755
+--- a/make/dragen_stub_lib.mk
++++ b/make/dragen_stub_lib.mk
+@@ -24,7 +24,7 @@ include $(wildcard $(lib_objects:%.o=%.d))
+ ###
+ $(DRAGEN_OS_BUILD)/stub_$(lib_dir).a: lib_objects:=$(lib_objects)
+ $(DRAGEN_OS_BUILD)/stub_$(lib_dir).a: $(lib_objects)
+-	$(SILENT) $(AR) crfs $@ $(lib_objects)
++	$(SILENT) $(AR) crs $@ $(lib_objects)
+ 
+ #$(DRAGEN_OS_BUILD)/$(lib_dir)/%.o: $(DRAGEN_OS_SRC_DIR)/lib/$(lib_dir)/%.cpp $(DRAGEN_OS_BUILD)/$(lib_dir)/%.d $(DRAGEN_OS_BUILD)/$(lib_dir)/.sentinel
+ #	$(CXX) $(DEPFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+diff --git a/make/lib.mk b/make/lib.mk
+index 16619e0..ae0444c 100755
+--- a/make/lib.mk
++++ b/make/lib.mk
+@@ -98,7 +98,7 @@ endif
+ ###
+ $(DRAGEN_OS_BUILD)/libdragmap-$(lib_dir).a: lib_objects:=$(lib_objects)
+ $(DRAGEN_OS_BUILD)/libdragmap-$(lib_dir).a: $(lib_objects)
+-	$(SILENT) $(AR) crfs $@ $(lib_objects)
++	$(SILENT) $(AR) crs $@ $(lib_objects)
+ 
+ #$(DRAGEN_OS_BUILD)/$(lib_dir)/%.o: $(DRAGEN_OS_SRC_DIR)/lib/$(lib_dir)/%.cpp $(DRAGEN_OS_BUILD)/$(lib_dir)/%.d $(DRAGEN_OS_BUILD)/$(lib_dir)/.sentinel
+ #	$(CXX) $(DEPFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+diff --git a/make/ssw_lib.mk b/make/ssw_lib.mk
+index 462fba9..af14f19 100755
+--- a/make/ssw_lib.mk
++++ b/make/ssw_lib.mk
+@@ -29,7 +29,7 @@ include $(wildcard $(lib_objects:%.o=%.d))
+ 
+ $(DRAGEN_OS_BUILD)/libdragmap-$(lib_dir).a: lib_objects:=$(lib_objects)
+ $(DRAGEN_OS_BUILD)/libdragmap-$(lib_dir).a: $(lib_objects)
+-	$(SILENT) $(AR) crfs $@ $(lib_objects)
++	$(SILENT) $(AR) crs $@ $(lib_objects)
+ 
+ #$(DRAGEN_OS_BUILD)/$(lib_dir)/%.o: $(DRAGEN_OS_SRC_DIR)/lib/$(lib_dir)/%.cpp $(DRAGEN_OS_BUILD)/$(lib_dir)/%.d $(DRAGEN_OS_BUILD)/$(lib_dir)/.sentinel
+ #	$(CXX) $(DEPFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<

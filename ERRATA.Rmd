@@ -209,9 +209,12 @@ package source closure. Apple also deprecates `sem_init()` and `sem_destroy()`
 and does not implement unnamed POSIX semaphores reliably. The imported hash
 compressor now uses a mutex-and-condition counter on Darwin while retaining
 POSIX semaphores elsewhere. That correction is recorded in
-`meta/patches/0006-darwin-hash-semaphore.patch`. These changes affect only build
-and platform-support code, not reference indexes, mapping decisions, or SAM
-records.
+`meta/patches/0006-darwin-hash-semaphore.patch`. The imported static-library
+recipes also requested GNU `ar`'s filename-truncation option, which Darwin
+`ar` rejects. They now use the portable create, replace, and index options
+recorded in `meta/patches/0007-portable-static-archive-options.patch`. These
+changes affect only build and platform-support code, not reference indexes,
+mapping decisions, or SAM records.
 
 The package source archive audit, a package installation using a simulated
 R-universe Boost prefix, both clean native builds, the local Clang native build,

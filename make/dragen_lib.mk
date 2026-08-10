@@ -24,7 +24,7 @@ include $(wildcard $(lib_objects:%.o=%.d))
 ###
 $(DRAGEN_OS_BUILD)/drgn_$(lib_dir).a: lib_objects:=$(lib_objects)
 $(DRAGEN_OS_BUILD)/drgn_$(lib_dir).a: $(lib_objects)
-	$(SILENT) $(AR) crfs $@ $(lib_objects)
+	$(SILENT) $(AR) crs $@ $(lib_objects)
 
 # Note: the dependency on $(libraries) is to force the order of compilation to be the same as the order of declaration of the libraries
 $(DRAGEN_OS_BUILD)/drgn_$(lib_dir)/%.o: lib_dir:=$(lib_dir)

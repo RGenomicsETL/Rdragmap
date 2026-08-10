@@ -24,7 +24,7 @@ include $(wildcard $(lib_objects:%.o=%.d))
 ###
 $(DRAGEN_OS_BUILD)/stub_$(lib_dir).a: lib_objects:=$(lib_objects)
 $(DRAGEN_OS_BUILD)/stub_$(lib_dir).a: $(lib_objects)
-	$(SILENT) $(AR) crfs $@ $(lib_objects)
+	$(SILENT) $(AR) crs $@ $(lib_objects)
 
 #$(DRAGEN_OS_BUILD)/$(lib_dir)/%.o: $(DRAGEN_OS_SRC_DIR)/lib/$(lib_dir)/%.cpp $(DRAGEN_OS_BUILD)/$(lib_dir)/%.d $(DRAGEN_OS_BUILD)/$(lib_dir)/.sentinel
 #	$(CXX) $(DEPFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<

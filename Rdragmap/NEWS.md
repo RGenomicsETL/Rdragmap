@@ -1,5 +1,8 @@
 # Rdragmap 0.0.0.9000
 
+- Create static archives with portable `ar` options accepted by GNU and Darwin
+  toolchains.
+
 - Use a pthread mutex-and-condition counter for the hash compressor on Darwin
   instead of deprecated unnamed POSIX semaphores.
 
