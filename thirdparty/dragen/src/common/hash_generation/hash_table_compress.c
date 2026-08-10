@@ -65,6 +65,66 @@
 #define MAGIC_AUTO_END (COMP_MAGIC + 0x23)
 
 #define MTHREAD_MAX_THREADS 256
+
+#if defined(__APPLE__)
+typedef struct {
+  pthread_mutex_t mutex;
+  pthread_cond_t  condition;
+  unsigned int    value;
+} mthreadSem_t;
+
+static int mthreadSemInit(mthreadSem_t* sem, unsigned int value)
+{
+  int ret = pthread_mutex_init(&sem->mutex, NULL);
+  if (ret) return ret;
+  ret = pthread_cond_init(&sem->condition, NULL);
+  if (ret) {
+    pthread_mutex_destroy(&sem->mutex);
+    return ret;
+  }
+  sem->value = value;
+  return 0;
+}
+
+static int mthreadSemDestroy(mthreadSem_t* sem)
+{
+  int ret      = pthread_cond_destroy(&sem->condition);
+  int mutexRet = pthread_mutex_destroy(&sem->mutex);
+  return ret ? ret : mutexRet;
+}
+
+static int mthreadSemPost(mthreadSem_t* sem)
+{
+  int ret = pthread_mutex_lock(&sem->mutex);
+  if (ret) return ret;
+  ++sem->value;
+  ret           = pthread_cond_signal(&sem->condition);
+  int unlockRet = pthread_mutex_unlock(&sem->mutex);
+  return ret ? ret : unlockRet;
+}
+
+static int mthreadSemWait(mthreadSem_t* sem)
+{
+  int ret = pthread_mutex_lock(&sem->mutex);
+  if (ret) return ret;
+  while (!sem->value) {
+    ret = pthread_cond_wait(&sem->condition, &sem->mutex);
+    if (ret) {
+      pthread_mutex_unlock(&sem->mutex);
+      return ret;
+    }
+  }
+  --sem->value;
+  return pthread_mutex_unlock(&sem->mutex);
+}
+#else
+typedef sem_t mthreadSem_t;
+#define mthreadSemInit(sem, value) sem_init((sem), 0, (value))
+#define mthreadSemDestroy(sem) sem_destroy((sem))
+#define mthreadSemPost(sem) sem_post((sem))
+#define mthreadSemWait(sem) sem_wait((sem))
+#endif
+
 // Shared context for multithreading
 typedef struct {
   void*           ctx;
@@ -85,8 +145,8 @@ typedef struct {
   int             inpWorkMutexVld;
   int             outWorkMutexVld;
   int             errMsgMutexVld;
-  sem_t           inpWorkSem;
-  sem_t           outWorkSem;
+  mthreadSem_t    inpWorkSem;
+  mthreadSem_t    outWorkSem;
   pthread_mutex_t inpWorkMutex;
   pthread_mutex_t outWorkMutex;
   pthread_mutex_t errMsgMutex;
@@ -111,7 +171,7 @@ void mthreadCancel(mthreadShare_t* share)
     pthread_mutex_lock(&share->inpWorkMutex);
     memset(share->inpWorkPtrs, 0, share->workUnits * sizeof(void*));
     pthread_mutex_unlock(&share->inpWorkMutex);
-    for (i = 0; i < share->numThreads; i++) sem_post(&share->inpWorkSem);
+    for (i = 0; i < share->numThreads; i++) mthreadSemPost(&share->inpWorkSem);
     for (i = 0; i < share->numThreads; i++) {
       if (share->threadsActive[i]) {
         PRINTIF(DEBUG_THREAD, ("  Joining child thread %d\n", i));
@@ -127,8 +187,8 @@ void mthreadCancel(mthreadShare_t* share)
   free(share->inpWorkPtrs);
   free(share->outWorkPtrs);
   free(share->threads);
-  if (share->inpWorkSemVld) sem_destroy(&share->inpWorkSem);
-  if (share->outWorkSemVld) sem_destroy(&share->outWorkSem);
+  if (share->inpWorkSemVld) mthreadSemDestroy(&share->inpWorkSem);
+  if (share->outWorkSemVld) mthreadSemDestroy(&share->outWorkSem);
   if (share->inpWorkMutexVld) pthread_mutex_destroy(&share->inpWorkMutex);
   if (share->outWorkMutexVld) pthread_mutex_destroy(&share->outWorkMutex);
   if (share->errMsgMutexVld) pthread_mutex_destroy(&share->errMsgMutex);
@@ -179,9 +239,9 @@ mthreadShare_t* mthreadInit(void* ctx, void* (*threadFunction)(void*), int numTh
   if (!share->workUnitsBuf || !share->inpWorkPtrs || !share->outWorkPtrs || !share->threads)
     goto mthreadInitError;
   // Initialize semaphores and mutexes
-  if (sem_init(&share->inpWorkSem, 0, 0)) goto mthreadInitError;
+  if (mthreadSemInit(&share->inpWorkSem, 0)) goto mthreadInitError;
   share->inpWorkSemVld = 1;
-  if (sem_init(&share->outWorkSem, 0, 0)) goto mthreadInitError;
+  if (mthreadSemInit(&share->outWorkSem, 0)) goto mthreadInitError;
   share->outWorkSemVld = 1;
   if (pthread_mutex_init(&share->inpWorkMutex, 0)) goto mthreadInitError;
   share->inpWorkMutexVld = 1;
@@ -195,7 +255,7 @@ mthreadShare_t* mthreadInit(void* ctx, void* (*threadFunction)(void*), int numTh
     PRINTIF(DEBUG_THREAD, ("  Readying work unit %d\n", i));
     share->outWorkPtrs[share->outWorkHead] = &((uint8_t*)share->workUnitsBuf)[i * workBytes];
     share->outWorkHead                     = (share->outWorkHead + 1) % share->workUnits;
-    sem_post(&share->outWorkSem);
+    mthreadSemPost(&share->outWorkSem);
   }
   pthread_mutex_unlock(&share->outWorkMutex);
   // Start worker threads
@@ -214,7 +274,7 @@ mthreadInitError:
 #define WORK_UNIT_ID (((uint8_t*)work - (uint8_t*)share->workUnitsBuf) / share->workBytes)
 void* mthreadParentGetJob(mthreadShare_t* share)
 {
-  sem_wait(&share->outWorkSem);
+  mthreadSemWait(&share->outWorkSem);
   pthread_mutex_lock(&share->outWorkMutex);
   void* work         = share->outWorkPtrs[share->outWorkTail];
   share->outWorkTail = (share->outWorkTail + 1) % share->workUnits;
@@ -232,13 +292,13 @@ void mthreadParentPutJob(mthreadShare_t* share, void* work)
   share->inpWorkPtrs[share->inpWorkHead] = work;
   share->inpWorkHead                     = (share->inpWorkHead + 1) % share->workUnits;
   pthread_mutex_unlock(&share->inpWorkMutex);
-  sem_post(&share->inpWorkSem);
+  mthreadSemPost(&share->inpWorkSem);
 }
 
 void* mthreadChildGetJob(int threadId, mthreadShare_t* share)
 {
   PRINTIF(DEBUG_THREAD, ("Thread %d waiting for work\n", threadId));
-  sem_wait(&share->inpWorkSem);
+  mthreadSemWait(&share->inpWorkSem);
   pthread_mutex_lock(&share->inpWorkMutex);
   void* work         = share->inpWorkPtrs[share->inpWorkTail];
   share->inpWorkTail = (share->inpWorkTail + 1) % share->workUnits;
@@ -259,7 +319,7 @@ void mthreadChildPutJob(int threadId, mthreadShare_t* share, void* work)
   share->outWorkPtrs[share->outWorkHead] = work;
   share->outWorkHead                     = (share->outWorkHead + 1) % share->workUnits;
   pthread_mutex_unlock(&share->outWorkMutex);
-  sem_post(&share->outWorkSem);
+  mthreadSemPost(&share->outWorkSem);
 }
 
 char* mthreadClose(mthreadShare_t* share)

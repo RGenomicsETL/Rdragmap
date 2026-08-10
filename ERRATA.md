@@ -212,8 +212,14 @@ no longer forces either header globally. The changes are recorded in
 `meta/patches/0003-apple-clang-aligner-portability.patch`,
 `meta/patches/0004-portable-limits-header.patch`, and
 `meta/patches/0005-stop-forced-limits-header.patch`, all retained in the
-package source closure. They affect only build and platform-support
-code, not reference indexes, mapping decisions, or SAM records.
+package source closure. Apple also deprecates `sem_init()` and
+`sem_destroy()` and does not implement unnamed POSIX semaphores
+reliably. The imported hash compressor now uses a mutex-and-condition
+counter on Darwin while retaining POSIX semaphores elsewhere. That
+correction is recorded in
+`meta/patches/0006-darwin-hash-semaphore.patch`. These changes affect
+only build and platform-support code, not reference indexes, mapping
+decisions, or SAM records.
 
 The package source archive audit, a package installation using a
 simulated R-universe Boost prefix, both clean native builds, the local

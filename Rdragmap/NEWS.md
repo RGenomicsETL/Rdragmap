@@ -1,5 +1,8 @@
 # Rdragmap 0.0.0.9000
 
+- Use a pthread mutex-and-condition counter for the hash compressor on Darwin
+  instead of deprecated unnamed POSIX semaphores.
+
 - Stop forcing the POSIX limits header into every imported C source because its
   Darwin `NZERO` macro conflicts with the hash generator under `-Werror`.
 
