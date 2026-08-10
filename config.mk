@@ -148,14 +148,21 @@ endif
 VERSION_STRING?=$(shell git describe --tags --always --abbrev=8 2> /dev/null || echo "$(DRAGMAP_SOURCE_VERSION)-rdragmap")
 
 CXXWARNINGS=-Werror -Wno-unused-variable -Wno-free-nonheap-object -Wno-parentheses
-CWARNINGS?=-Werror -Wno-unused-variable -Wno-unused-function -Wno-format-truncation
+# GCC diagnoses imported bounded formatting that is kept for compatibility.
+# Apple Clang rejects the GCC-only suppression itself under -Werror, so retain
+# it only when the selected C compiler accepts it.
+DRAGMAP_C_WARNING_FLAGS?=-Wno-format-truncation
+DRAGMAP_C_WARNING_FLAGS_SUPPORTED?=$(shell CC='$(CC)' C_FLAGS_TO_PROBE='$(DRAGMAP_C_WARNING_FLAGS)' sh $(DRAGEN_OS_ROOT_DIR)/meta/probe-c-flags.sh)
+CWARNINGS?=-Werror -Wno-unused-variable -Wno-unused-function $(DRAGMAP_C_WARNING_FLAGS_SUPPORTED)
 CXXSTD?=-std=c++17
 
-# These imported GCC tuning flags are retained only when the selected C++
-# compiler accepts each under -Werror. Clang already applies comparable
-# vectorization at -O2 and rejects several of the GCC-only spellings.
+# These imported GCC tuning flags are retained separately for C and C++ only
+# when the selected language compiler accepts each under -Werror. Clang already
+# applies comparable vectorization at -O2 and rejects several GCC-only spellings.
 DRAGMAP_TUNING_CXX_FLAGS?=-ftree-vectorize -finline-functions -fpredictive-commoning -fgcse-after-reload -funswitch-loops -ftree-slp-vectorize -fvect-cost-model -fipa-cp-clone -ftree-phiprop
+DRAGMAP_TUNING_C_FLAGS?=$(DRAGMAP_TUNING_CXX_FLAGS)
 DRAGMAP_TUNING_CXX_FLAGS_SUPPORTED?=$(shell CXX='$(CXX)' CXX_FLAGS_TO_PROBE='$(DRAGMAP_TUNING_CXX_FLAGS)' sh $(DRAGEN_OS_ROOT_DIR)/meta/probe-cxx-flags.sh)
+DRAGMAP_TUNING_C_FLAGS_SUPPORTED?=$(shell CC='$(CC)' C_FLAGS_TO_PROBE='$(DRAGMAP_TUNING_C_FLAGS)' sh $(DRAGEN_OS_ROOT_DIR)/meta/probe-c-flags.sh)
 
 # RsimdDispatch pattern: keep ordinary objects on the compiler baseline and
 # stage AVX2 only when the compiler targets x86 and accepts the ISA flag.
@@ -210,7 +217,9 @@ else # non DEBUG
 #CPPFLAGS += -O3 -march=skylake-avx512 # same as above
 
 # this seems to be fastest for fastq parsing. mainly because it manages to put proper PSUBB instruction for subtracing q0 from qscore chars
-CPPFLAGS += -g -O2 $(DRAGMAP_TUNING_CXX_FLAGS_SUPPORTED)
+CPPFLAGS += -g -O2
+CXXFLAGS += $(DRAGMAP_TUNING_CXX_FLAGS_SUPPORTED)
+CFLAGS += $(DRAGMAP_TUNING_C_FLAGS_SUPPORTED)
 
 # this seems slightly slower than above
 #CXXFLAGS += -g -mavx2 -O2 -ftree-vectorize -finline-functions -fpredictive-commoning -fgcse-after-reload -funswitch-loops -ftree-slp-vectorize -fvect-cost-model -fipa-cp-clone -ftree-phiprop

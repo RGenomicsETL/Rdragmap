@@ -148,12 +148,14 @@ package-owned builds.
 ### E-012: Compiler-probed tuning flags
 
 The imported release build applies GCC-specific optimization flags to
-every C++ compiler. Apple Clang rejects several of these under
-`-Werror`, preventing package installation. Rdragmap probes each
-imported tuning flag with the selected compiler and uses only accepted
-flags, retaining `-O2` and the accepted GCC flags. This changes
-optimization selection only. The local Clang portable build and its
-native CI lane compile the regression path.
+every C and C++ compiler and a GCC-only `-Wno-format-truncation`
+suppression to every C compiler. Apple Clang rejects several of these
+under `-Werror`, preventing package installation. Rdragmap probes the
+tuning flags separately with the selected C and C++ compilers, probes
+the C-warning flag with the selected C compiler, and uses only accepted
+flags while retaining `-O2`. This changes optimization and diagnostic
+selection only. The local Clang portable build and its native CI lane
+compile the regression path.
 
 ### E-013: Clang C and C++ conformance
 
