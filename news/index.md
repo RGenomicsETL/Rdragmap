@@ -2,6 +2,9 @@
 
 ## Rdragmap 0.0.0.9000
 
+- Use the portable POSIX limits header for imported metrics compilation
+  on macOS.
+
 - Fix Apple Clang compilation for imported alignment extent and iterator
   initialization.
 

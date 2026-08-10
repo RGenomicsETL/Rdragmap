@@ -34,7 +34,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.0.9000" id="rdragmap-0009000">Rdragmap 0.0.0.9000<a class="anchor" aria-label="anchor" href="#rdragmap-0009000"></a></h2>
-<ul><li><p>Fix Apple Clang compilation for imported alignment extent and iterator initialization.</p></li>
+<ul><li><p>Use the portable POSIX limits header for imported metrics compilation on macOS.</p></li>
+<li><p>Fix Apple Clang compilation for imported alignment extent and iterator initialization.</p></li>
 <li><p>Build against the R-universe macOS Boost bundle and use POSIX and Darwin facilities where the imported Linux implementation was not portable.</p></li>
 <li><p>Add a source-built R wrapper that owns and resolves <code>dragen-os</code> without searching <code>PATH</code>.</p></li>
 <li><p>Add typed S7 results, operational error values, and contract conditions for reference generation and FASTQ to SAM alignment.</p></li>
