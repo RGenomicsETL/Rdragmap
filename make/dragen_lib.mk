@@ -1,5 +1,7 @@
 
-DRAGEN_OS_FLAGS:=-include linux/limits.h
+# Imported metrics code uses PATH_MAX. The standard POSIX limits header is
+# available on Linux and Darwin; the Linux kernel-private header is not.
+DRAGEN_OS_FLAGS := -include limits.h
 
 ifeq (,$(dragen_lib_dirs_aux))
 $(error No library directories specified)

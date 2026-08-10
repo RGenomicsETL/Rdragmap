@@ -1,0 +1,22 @@
+# Rdragmap patch: portable limits header
+# Base: cd1868b87e309ad1c15c62b4996cc9cba2f0320a
+# Purpose: replace the Linux kernel-private forced limits header with the
+# standard POSIX limits header required by imported metrics sources on Linux
+# and Darwin.
+# Regression: `make clean && make HAS_GTEST=0 DRAGMAP_HAVE_AVX2=0`,
+# `make clean && make HAS_GTEST=0`, and the macOS `R CMD check --no-manual`
+# package job compile the imported metrics objects.
+
+diff --git a/make/dragen_lib.mk b/make/dragen_lib.mk
+index ead32f7..51c7d6f 100755
+--- a/make/dragen_lib.mk
++++ b/make/dragen_lib.mk
+@@ -1,5 +1,7 @@
+ 
+-DRAGEN_OS_FLAGS:=-include linux/limits.h
++# Imported metrics code uses PATH_MAX. The standard POSIX limits header is
++# available on Linux and Darwin; the Linux kernel-private header is not.
++DRAGEN_OS_FLAGS := -include limits.h
+ 
+ ifeq (,$(dragen_lib_dirs_aux))
+ $(error No library directories specified)
