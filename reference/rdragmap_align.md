@@ -105,10 +105,10 @@ if (!rdragmap_is_error(built)) {
   if (!rdragmap_is_error(aligned)) aligned@outputs
 }
 #> $sam
-#> [1] "/tmp/RtmpUzmOO7/rdragmap-example-20966faee10a/example.sam"
+#> [1] "/tmp/RtmpYmhAxn/rdragmap-example-205f223cf06d/example.sam"
 #> 
 #> $mapping_metrics
-#> [1] "/tmp/RtmpUzmOO7/rdragmap-example-20966faee10a/example.mapping_metrics.csv"
+#> [1] "/tmp/RtmpYmhAxn/rdragmap-example-205f223cf06d/example.mapping_metrics.csv"
 #> 
 unlink(work, recursive = TRUE, force = TRUE)
 # }
