@@ -65,22 +65,9 @@ std::string GetReferenceAutoDetectDir(const options::DragenOsOptions& opts)
 //
 void getRelativeLiftoverPath(const std::string& oldPath, std::string& newPath)
 {
-  char buf[PATH_MAX];
-
-  ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf));
-  if (len != -1) {
-    buf[len]  = '\0';
-    char* ptr = std::strrchr(buf, '/');
-    if (ptr != NULL) {
-      ptr[0] = '\0';
-    }
-  } else {
-    buf[0] = '\0';
-  }
-
-  std::filesystem::path dragen_exe_dir(buf);
-  std::filesystem::path p(oldPath);
-  newPath = dragen_exe_dir.parent_path().string() + "/liftover/" + p.filename().string();
+  const std::filesystem::path executableDirectory(getCurrentExecutableDir());
+  const std::filesystem::path p(oldPath);
+  newPath = (executableDirectory.parent_path() / "liftover" / p.filename()).string();
 }
 //-------------------------------------------------------------------------------swhitmore
 // SetBuildHashTableOptions - Populate the hashTableConfig_t struct from config

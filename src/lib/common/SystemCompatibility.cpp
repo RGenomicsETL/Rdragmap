@@ -14,8 +14,18 @@
 
 #include <stdio.h>
 
+#include <array>
 #include <iostream>
 #include <new>
+#include <vector>
+
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+
+#if defined(__APPLE__)
+#include <mach-o/dyld.h>
+#endif
 
 #include <boost/format.hpp>
 
@@ -42,9 +52,13 @@
  * TODO: separate the implementation into different files, depending on the system
  */
 #ifdef HAVE_MALLOC_H
+#if defined(__APPLE__)
+#include <malloc/malloc.h>
+#else
 #include <malloc.h>
+#endif
 #else  // #ifdef HAVE_MALLOC_H
-#error Only POSIX systems are supported. The header <malloc.h> is required.
+#error Only POSIX systems are supported. The platform allocator header is required.
 #endif  // #ifdef HAVE_MALLOC_H
 
 #ifdef HAVE_TIME_H
@@ -352,12 +366,27 @@ uint64_t getFileSize(const PathCharType* filePath)
 
 std::filesystem::path getModuleFileName()
 {
-  char szBuffer[10240];
-  int readBytes = readlink("/proc/self/exe", szBuffer, sizeof(szBuffer));
-  DRAGEN_OS_ASSERT_MSG(-1 != readBytes, "TODO: handle the readlink error: " << errno);
-  // readlink does not zero-terminate the string.
-  szBuffer[readBytes] = 0;
-  return std::filesystem::path(szBuffer);
+#if defined(__APPLE__)
+  uint32_t size = 0;
+  (void)_NSGetExecutablePath(nullptr, &size);
+  if (!size) {
+    return {};
+  }
+
+  std::vector<char> buffer(size);
+  if (0 != _NSGetExecutablePath(buffer.data(), &size)) {
+    return {};
+  }
+  return std::filesystem::path(buffer.data());
+#else
+  std::array<char, 10240> buffer{};
+  const ssize_t readBytes = readlink("/proc/self/exe", buffer.data(), buffer.size() - 1);
+  if (readBytes < 0) {
+    return {};
+  }
+  buffer[static_cast<std::size_t>(readBytes)] = '\0';
+  return std::filesystem::path(buffer.data());
+#endif
 }
 
 }  // namespace common
@@ -369,6 +398,7 @@ namespace dragenos {
 namespace common {
 void configureMemoryManagement(const bool disableMultipleArenas, const bool disableFastbins)
 {
+#if defined(__linux__)
   if (disableMultipleArenas) {
     // By default linux creates  ((NUMBER_OF_CPU_CORES) * (sizeof(int64_t) == 4 ? 2 : 8)) arenas to allow for
     // (I guess) faster concurrent memory management. As iSAAC pre-allocates all the memory and spends
@@ -390,6 +420,11 @@ void configureMemoryManagement(const bool disableMultipleArenas, const bool disa
     // fastbins are disabled.
     mallopt(M_MXFAST, 0);
   }
+#else
+  // These are glibc allocator controls. Other POSIX allocators have no equivalent contract.
+  (void)disableMultipleArenas;
+  (void)disableFastbins;
+#endif
 }
 
 bool ulimitV(uint64_t availableMemory)

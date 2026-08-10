@@ -172,6 +172,28 @@ searches the SIMDe root with `-idirafter`, so standard headers win while
 `<simde/...>` remains available. The case-collision probe and local Clang build
 are the regression checks.
 
+### E-015: macOS package installation
+
+R-universe's macOS builder removes Homebrew and stages Boost under
+`/opt/R/<architecture>`, but the package build did not select that include and
+library prefix. It therefore failed before compiling `common/Debug.hpp`.
+Rdragmap now selects that prefix when the caller has not set a Boost location,
+and also recognizes the ordinary Homebrew prefixes for source installs. The
+native-source delta is recorded in
+`meta/patches/0002-macos-package-portability.patch` and retained in the package
+source closure.
+
+The imported platform code also assumed Linux paths and allocator controls.
+Rdragmap uses Darwin's executable-path and `sysctl` facilities where needed,
+leaves glibc-only allocator tuning inactive on Darwin, and lets the selected
+C++ driver select its compatible standard library rather than forcing
+`-lstdc++`. These changes affect only build and platform-support code, not
+reference indexes, mapping decisions, or SAM records. The package source
+archive audit, a package installation using a simulated R-universe Boost
+prefix, both clean native builds, and the tarball-based package check are the
+local regression checks. The dedicated macOS CI lane executes the package path
+with Apple Clang.
+
 ## ALT-contig limitation
 
 The README's `--ht-mask-bed` path is implemented, not a no-op. During hash-table

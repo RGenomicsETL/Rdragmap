@@ -1,0 +1,306 @@
+# Rdragmap patch: macOS package portability
+# Base: f61b9b24fed06a5602253da27bc7294e42340c9a
+# Purpose: make the imported native platform layer compile with Apple Clang and
+# Darwin facilities, while retaining Linux behavior and C++ driver ownership of
+# the standard library.
+# Regression: portable and auto native builds, Clang native build, package source
+# archive audit, simulated R-universe Boost-prefix installation, and R CMD check.
+
+diff --git a/config.mk b/config.mk
+index af6bb13599b41cbb1babf6fd18de2735f5981dbe..b71f09d48ee800a85c38fcc9fae1d3825cd52c76 100755
+--- a/config.mk
++++ b/config.mk
+@@ -226,10 +226,10 @@ endif # ASAN
+ 
+ LDFLAGS+= -lz -lpthread
+ 
++# The C++ driver owns the compatible standard library. In particular, forcing
++# -lstdc++ makes an Apple Clang link select the wrong runtime.
+ ifdef STATIC_LIBCPP
+ LDFLAGS+= -static-libstdc++
+-else
+-LDFLAGS+= -lstdc++
+ endif
+ 
+ #LDFLAGS+= -lz -lstdc++ -lrt -lgomp -lpthread
+diff --git a/src/lib/common/SystemCompatibility.cpp b/src/lib/common/SystemCompatibility.cpp
+index c8756f3d24423cd80a160038943bdd572102db45..d95c3ef35c2b3a5e64a02b3a7a1e18109c83172a 100644
+--- a/src/lib/common/SystemCompatibility.cpp
++++ b/src/lib/common/SystemCompatibility.cpp
+@@ -14,8 +14,18 @@
+ 
+ #include <stdio.h>
+ 
++#include <array>
+ #include <iostream>
+ #include <new>
++#include <vector>
++
++#if !defined(_WIN32)
++#include <unistd.h>
++#endif
++
++#if defined(__APPLE__)
++#include <mach-o/dyld.h>
++#endif
+ 
+ #include <boost/format.hpp>
+ 
+@@ -42,9 +52,13 @@
+  * TODO: separate the implementation into different files, depending on the system
+  */
+ #ifdef HAVE_MALLOC_H
++#if defined(__APPLE__)
++#include <malloc/malloc.h>
++#else
+ #include <malloc.h>
++#endif
+ #else  // #ifdef HAVE_MALLOC_H
+-#error Only POSIX systems are supported. The header <malloc.h> is required.
++#error Only POSIX systems are supported. The platform allocator header is required.
+ #endif  // #ifdef HAVE_MALLOC_H
+ 
+ #ifdef HAVE_TIME_H
+@@ -352,12 +366,27 @@ uint64_t getFileSize(const PathCharType* filePath)
+ 
+ std::filesystem::path getModuleFileName()
+ {
+-  char szBuffer[10240];
+-  int readBytes = readlink("/proc/self/exe", szBuffer, sizeof(szBuffer));
+-  DRAGEN_OS_ASSERT_MSG(-1 != readBytes, "TODO: handle the readlink error: " << errno);
+-  // readlink does not zero-terminate the string.
+-  szBuffer[readBytes] = 0;
+-  return std::filesystem::path(szBuffer);
++#if defined(__APPLE__)
++  uint32_t size = 0;
++  (void)_NSGetExecutablePath(nullptr, &size);
++  if (!size) {
++    return {};
++  }
++
++  std::vector<char> buffer(size);
++  if (0 != _NSGetExecutablePath(buffer.data(), &size)) {
++    return {};
++  }
++  return std::filesystem::path(buffer.data());
++#else
++  std::array<char, 10240> buffer{};
++  const ssize_t readBytes = readlink("/proc/self/exe", buffer.data(), buffer.size() - 1);
++  if (readBytes < 0) {
++    return {};
++  }
++  buffer[static_cast<std::size_t>(readBytes)] = '\0';
++  return std::filesystem::path(buffer.data());
++#endif
+ }
+ 
+ }  // namespace common
+@@ -369,6 +398,7 @@ namespace dragenos {
+ namespace common {
+ void configureMemoryManagement(const bool disableMultipleArenas, const bool disableFastbins)
+ {
++#if defined(__linux__)
+   if (disableMultipleArenas) {
+     // By default linux creates  ((NUMBER_OF_CPU_CORES) * (sizeof(int64_t) == 4 ? 2 : 8)) arenas to allow for
+     // (I guess) faster concurrent memory management. As iSAAC pre-allocates all the memory and spends
+@@ -390,6 +420,11 @@ void configureMemoryManagement(const bool disableMultipleArenas, const bool disa
+     // fastbins are disabled.
+     mallopt(M_MXFAST, 0);
+   }
++#else
++  // These are glibc allocator controls. Other POSIX allocators have no equivalent contract.
++  (void)disableMultipleArenas;
++  (void)disableFastbins;
++#endif
+ }
+ 
+ bool ulimitV(uint64_t availableMemory)
+diff --git a/src/lib/reference/ReferenceDir.cpp b/src/lib/reference/ReferenceDir.cpp
+index ef2f1134302241ef8b58872fafe6965273db2d5a..e5f0feace13888bbe5b8bc0ac105c52a1246d1c7 100644
+--- a/src/lib/reference/ReferenceDir.cpp
++++ b/src/lib/reference/ReferenceDir.cpp
+@@ -196,8 +196,11 @@ std::unique_ptr<T, std::function<void(T*)>> ReferenceDir7::mmapData(
+     BOOST_THROW_EXCEPTION(
+         IoException(errno, std::string("ERROR: failed to open data file ") + dataFile.string()));
+   }
+-  const int prot   = PROT_READ;
+-  const int flags  = MAP_PRIVATE | MAP_NORESERVE;
++  const int prot = PROT_READ;
++  int       flags = MAP_PRIVATE;
++#ifdef MAP_NORESERVE
++  flags |= MAP_NORESERVE;
++#endif
+   const int offset = 0;
+   auto      table  = mmap(NULL, fileSize, prot, flags, hashtableFd, offset);
+   if (MAP_FAILED == table) {
+diff --git a/src/lib/workflow/GenHashTableWorkflow.cpp b/src/lib/workflow/GenHashTableWorkflow.cpp
+index d7be52660e3db1078e2d487adb9ea82cf0d14dd5..802c4bb436bf66b8f53739510f1069eb0b5da529 100644
+--- a/src/lib/workflow/GenHashTableWorkflow.cpp
++++ b/src/lib/workflow/GenHashTableWorkflow.cpp
+@@ -65,22 +65,9 @@ std::string GetReferenceAutoDetectDir(const options::DragenOsOptions& opts)
+ //
+ void getRelativeLiftoverPath(const std::string& oldPath, std::string& newPath)
+ {
+-  char buf[PATH_MAX];
+-
+-  ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf));
+-  if (len != -1) {
+-    buf[len]  = '\0';
+-    char* ptr = std::strrchr(buf, '/');
+-    if (ptr != NULL) {
+-      ptr[0] = '\0';
+-    }
+-  } else {
+-    buf[0] = '\0';
+-  }
+-
+-  std::filesystem::path dragen_exe_dir(buf);
+-  std::filesystem::path p(oldPath);
+-  newPath = dragen_exe_dir.parent_path().string() + "/liftover/" + p.filename().string();
++  const std::filesystem::path executableDirectory(getCurrentExecutableDir());
++  const std::filesystem::path p(oldPath);
++  newPath = (executableDirectory.parent_path() / "liftover" / p.filename()).string();
+ }
+ //-------------------------------------------------------------------------------swhitmore
+ // SetBuildHashTableOptions - Populate the hashTableConfig_t struct from config
+diff --git a/stubs/dragen/src/host/infra/linux/infra_linux_utils.cpp b/stubs/dragen/src/host/infra/linux/infra_linux_utils.cpp
+index 43f5660e6ce21a982956a85c94d3e6be2c4a02a2..987edf04641e5705f4ce5828b20be161e6cbafdd 100644
+--- a/stubs/dragen/src/host/infra/linux/infra_linux_utils.cpp
++++ b/stubs/dragen/src/host/infra/linux/infra_linux_utils.cpp
+@@ -14,20 +14,28 @@
+ #include <fcntl.h>
+ #include <pwd.h>
+ #include <signal.h>
+-#include <sys/sysinfo.h>
+ #include <sys/types.h>
+ #include <sys/utsname.h>
+ #include <unistd.h>
+ 
++#if defined(__APPLE__)
++#include <mach-o/dyld.h>
++#include <sys/sysctl.h>
++#else
++#include <sys/sysinfo.h>
++#endif
++
+ #include <algorithm>
+ #include <boost/algorithm/string.hpp>
+ #include <filesystem>
+ #include <cstring>
+ #include <fstream>
+ #include <iostream>
++#include <limits.h>
+ #include <mutex>
+ #include <sstream>
+ #include <thread>
++#include <vector>
+ 
+ //#include "infra_assert.hpp"
+ //#include "infra_filesystem_utils.hpp"
+@@ -103,38 +111,43 @@ int GetDmiValue(const std::string& label, std::string& value)
+   return status ? status : (value.empty() ? -3 : 0);
+ }
+ 
+-//------------------------------------------------------------------------alain
+-std::string getExecutablePath()
++namespace {
++std::string executableFilePath()
+ {
+-  char buf[PATH_MAX] = {'\0'};
++#if defined(__APPLE__)
++  uint32_t size = 0;
++  (void)_NSGetExecutablePath(nullptr, &size);
++  if (!size) {
++    return {};
++  }
+ 
+-  ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf));
+-  if (len != -1) {
+-    buf[len]  = '\0';
+-    char* ptr = std::strrchr(buf, '/');
+-    if (ptr != NULL) {
+-      ptr[0] = '\0';
+-    }
+-  } else {
+-    buf[0] = '\0';
++  std::vector<char> buffer(size);
++  if (0 != _NSGetExecutablePath(buffer.data(), &size)) {
++    return {};
+   }
++  return std::string(buffer.data());
++#else
++  char buf[PATH_MAX] = {'\0'};
++  const ssize_t len  = ::readlink("/proc/self/exe", buf, sizeof(buf) - 1);
++  if (len < 0) {
++    return {};
++  }
++  buf[len] = '\0';
+   return std::string(buf);
++#endif
+ }
++}  // namespace
+ 
+ //------------------------------------------------------------------------alain
+-std::string getExecutableName()
++std::string getExecutablePath()
+ {
+-  char buf[PATH_MAX] = {'\0'};
++  return std::filesystem::path(executableFilePath()).parent_path().string();
++}
+ 
+-  ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf));
+-  if (len != -1) {
+-    buf[len] = '\0';
+-  }
+-  char* ptr = std::strrchr(buf, '/');
+-  if (ptr) {
+-    return std::string(ptr + 1);
+-  }
+-  return std::string(buf);
++//------------------------------------------------------------------------alain
++std::string getExecutableName()
++{
++  return std::filesystem::path(executableFilePath()).filename().string();
+ }
+ 
+ //------------------------------------------------------------------------alain
+@@ -190,14 +203,25 @@ std::string GetRealUserId()
+ //------------------------------------------------------------------------alain
+ uint64_t GetSystemMemorySize()
+ {
++#if defined(__APPLE__)
++  uint64_t memory{};
++  size_t   size = sizeof(memory);
++  return 0 == sysctlbyname("hw.memsize", &memory, &size, nullptr, 0) ? memory : 0;
++#else
+   struct sysinfo si;
+   sysinfo(&si);
+   return si.totalram;
++#endif
+ }
+ 
+ //------------------------------------------------------------------------alain
+ uint32_t GetCacheLineSize()
+ {
++#if defined(__APPLE__)
++  uint32_t size{};
++  size_t   length = sizeof(size);
++  return 0 == sysctlbyname("hw.cachelinesize", &size, &length, nullptr, 0) ? size : 0;
++#else
+   const char*   path = "/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size";
+   std::ifstream ifs(path, std::ios::in);
+   if (ifs.is_open()) {
+@@ -206,12 +230,9 @@ uint32_t GetCacheLineSize()
+     if (ifs.good()) {
+       return size;
+     }
+-    // unable to read
+-    return 0u;
+   }
+-
+-  // unable to open file
+   return 0u;
++#endif
+ }
+ 
+ //------------------------------------------------------------------------alain

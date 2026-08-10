@@ -226,10 +226,10 @@ endif # ASAN
 
 LDFLAGS+= -lz -lpthread
 
+# The C++ driver owns the compatible standard library. In particular, forcing
+# -lstdc++ makes an Apple Clang link select the wrong runtime.
 ifdef STATIC_LIBCPP
 LDFLAGS+= -static-libstdc++
-else
-LDFLAGS+= -lstdc++
 endif
 
 #LDFLAGS+= -lz -lstdc++ -lrt -lgomp -lpthread

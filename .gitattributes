@@ -1,0 +1,2 @@
+# Unified diffs retain a one-character context prefix on blank lines.
+meta/patches/*.patch -whitespace

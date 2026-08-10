@@ -49,6 +49,31 @@ if [ -z "$make_command" ] || [ -z "$cc" ] || [ -z "$cxx" ] || [ -z "$ar" ]; then
   exit 1
 fi
 
+# R-universe's macOS builder removes Homebrew, then supplies its static CRAN
+# dependency bundle under /opt/R/<architecture>. Select that Boost installation
+# only when the caller did not select one. The Homebrew locations keep ordinary
+# macOS source installations equally explicit without affecting other Unix
+# toolchains.
+if [ -z "${BOOST_ROOT:-}" ] && [ -z "${BOOST_INCLUDEDIR:-}" ] && [ -z "${BOOST_LIBRARYDIR:-}" ]; then
+  for boost_prefix in \
+    "/opt/R/$(uname -m)" \
+    /opt/homebrew/opt/boost \
+    /usr/local/opt/boost
+  do
+    if [ -f "$boost_prefix/include/boost/algorithm/string.hpp" ] &&
+       { [ -f "$boost_prefix/lib/libboost_iostreams.a" ] ||
+         [ -f "$boost_prefix/lib/libboost_iostreams.dylib" ]; } &&
+       { [ -f "$boost_prefix/lib/libboost_program_options.a" ] ||
+         [ -f "$boost_prefix/lib/libboost_program_options.dylib" ]; }
+    then
+      export BOOST_INCLUDEDIR="$boost_prefix/include"
+      export BOOST_LIBRARYDIR="$boost_prefix/lib"
+      echo "Rdragmap configure: using Boost from $boost_prefix"
+      break
+    fi
+  done
+fi
+
 make_jobs=${RDRAGMAP_MAKE_JOBS:-2}
 case "$make_jobs" in
   *[!0-9]*|'')

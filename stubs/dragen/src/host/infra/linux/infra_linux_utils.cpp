@@ -14,10 +14,16 @@
 #include <fcntl.h>
 #include <pwd.h>
 #include <signal.h>
-#include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <unistd.h>
+
+#if defined(__APPLE__)
+#include <mach-o/dyld.h>
+#include <sys/sysctl.h>
+#else
+#include <sys/sysinfo.h>
+#endif
 
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
@@ -25,9 +31,11 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <limits.h>
 #include <mutex>
 #include <sstream>
 #include <thread>
+#include <vector>
 
 //#include "infra_assert.hpp"
 //#include "infra_filesystem_utils.hpp"
@@ -103,38 +111,43 @@ int GetDmiValue(const std::string& label, std::string& value)
   return status ? status : (value.empty() ? -3 : 0);
 }
 
+namespace {
+std::string executableFilePath()
+{
+#if defined(__APPLE__)
+  uint32_t size = 0;
+  (void)_NSGetExecutablePath(nullptr, &size);
+  if (!size) {
+    return {};
+  }
+
+  std::vector<char> buffer(size);
+  if (0 != _NSGetExecutablePath(buffer.data(), &size)) {
+    return {};
+  }
+  return std::string(buffer.data());
+#else
+  char buf[PATH_MAX] = {'\0'};
+  const ssize_t len  = ::readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+  if (len < 0) {
+    return {};
+  }
+  buf[len] = '\0';
+  return std::string(buf);
+#endif
+}
+}  // namespace
+
 //------------------------------------------------------------------------alain
 std::string getExecutablePath()
 {
-  char buf[PATH_MAX] = {'\0'};
-
-  ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf));
-  if (len != -1) {
-    buf[len]  = '\0';
-    char* ptr = std::strrchr(buf, '/');
-    if (ptr != NULL) {
-      ptr[0] = '\0';
-    }
-  } else {
-    buf[0] = '\0';
-  }
-  return std::string(buf);
+  return std::filesystem::path(executableFilePath()).parent_path().string();
 }
 
 //------------------------------------------------------------------------alain
 std::string getExecutableName()
 {
-  char buf[PATH_MAX] = {'\0'};
-
-  ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf));
-  if (len != -1) {
-    buf[len] = '\0';
-  }
-  char* ptr = std::strrchr(buf, '/');
-  if (ptr) {
-    return std::string(ptr + 1);
-  }
-  return std::string(buf);
+  return std::filesystem::path(executableFilePath()).filename().string();
 }
 
 //------------------------------------------------------------------------alain
@@ -190,14 +203,25 @@ std::string GetRealUserId()
 //------------------------------------------------------------------------alain
 uint64_t GetSystemMemorySize()
 {
+#if defined(__APPLE__)
+  uint64_t memory{};
+  size_t   size = sizeof(memory);
+  return 0 == sysctlbyname("hw.memsize", &memory, &size, nullptr, 0) ? memory : 0;
+#else
   struct sysinfo si;
   sysinfo(&si);
   return si.totalram;
+#endif
 }
 
 //------------------------------------------------------------------------alain
 uint32_t GetCacheLineSize()
 {
+#if defined(__APPLE__)
+  uint32_t size{};
+  size_t   length = sizeof(size);
+  return 0 == sysctlbyname("hw.cachelinesize", &size, &length, nullptr, 0) ? size : 0;
+#else
   const char*   path = "/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size";
   std::ifstream ifs(path, std::ios::in);
   if (ifs.is_open()) {
@@ -206,12 +230,9 @@ uint32_t GetCacheLineSize()
     if (ifs.good()) {
       return size;
     }
-    // unable to read
-    return 0u;
   }
-
-  // unable to open file
   return 0u;
+#endif
 }
 
 //------------------------------------------------------------------------alain

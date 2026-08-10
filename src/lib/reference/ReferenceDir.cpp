@@ -196,8 +196,11 @@ std::unique_ptr<T, std::function<void(T*)>> ReferenceDir7::mmapData(
     BOOST_THROW_EXCEPTION(
         IoException(errno, std::string("ERROR: failed to open data file ") + dataFile.string()));
   }
-  const int prot   = PROT_READ;
-  const int flags  = MAP_PRIVATE | MAP_NORESERVE;
+  const int prot = PROT_READ;
+  int       flags = MAP_PRIVATE;
+#ifdef MAP_NORESERVE
+  flags |= MAP_NORESERVE;
+#endif
   const int offset = 0;
   auto      table  = mmap(NULL, fileSize, prot, flags, hashtableFd, offset);
   if (MAP_FAILED == table) {

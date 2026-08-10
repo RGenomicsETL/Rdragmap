@@ -26,9 +26,11 @@ in the parent repository's `CONFORMANCE.md` and `ERRATA.md`.
 ## Installation requirements
 
 Installation requires a Unix-like system, GNU Make, a C++17 compiler, zlib,
-bzip2, and development files for Boost Iostreams and Program Options. The
-package's `configure` script uses the compiler and make program reported by R,
-then builds only the package-owned `dragen-os` child executable.
+bzip2, and development files for Boost Iostreams and Program Options. On
+macOS, install Boost with `brew install boost`. The package's `configure`
+script uses the compiler and make program reported by R, selects the
+R-universe macOS dependency bundle when present, then builds only the
+package-owned `dragen-os` child executable.
 
 ## Use
 

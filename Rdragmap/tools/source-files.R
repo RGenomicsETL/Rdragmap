@@ -9,7 +9,7 @@ rdragmap_source_files <- function(repo_root) {
     "meta/probe-avx2.sh",
     "meta/probe-cxx-flags.sh",
     "meta/vendor-simde.sh",
-    "meta/patches/0001-simde-remove-diagnostic-pragmas.patch",
+    "meta/patches",
     "src",
     "stubs",
     "thirdparty/dragen",

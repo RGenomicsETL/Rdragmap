@@ -56,3 +56,40 @@ jobs:
           build_args: '"--no-manual"'
           error-on: '"warning"'
           upload-results: always
+
+  R-CMD-check-macos:
+    name: macos (release)
+    runs-on: macos-14
+    timeout-minutes: 45
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      RDRAGMAP_MAKE_JOBS: 2
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install native dependencies
+        run: brew install boost
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          working-directory: Rdragmap
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - name: Audit packaged native source closure
+        run: make -C Rdragmap source-audit
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          working-directory: Rdragmap
+          args: 'c("--no-manual")'
+          build_args: '"--no-manual"'
+          error-on: '"warning"'
+          upload-results: always

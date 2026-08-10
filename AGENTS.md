@@ -10,6 +10,10 @@ upstream attribution while making focused, executable changes.
 - `config.mk` and `make/*.mk` own the native build.
 - `thirdparty/simde/VERSION` and `meta/vendor-simde.sh` own the pinned SIMDe
   recipe. Never hand-edit `thirdparty/simde/simde`.
+- Record every new delta to imported `src/`, `stubs/`, or `thirdparty/dragen`
+  code as an ordered `meta/patches/*.patch` file. State its base, concrete
+  purpose, and executable regression in the patch header and retain it in the
+  package source closure.
 - Existing C++ tests and tiny end-to-end fixtures under `data/tiny` own mapping
   compatibility.
 
