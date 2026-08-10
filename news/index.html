@@ -34,7 +34,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.0.9000" id="rdragmap-0009000">Rdragmap 0.0.0.9000<a class="anchor" aria-label="anchor" href="#rdragmap-0009000"></a></h2>
-<ul><li><p>Use a pthread mutex-and-condition counter for the hash compressor on Darwin instead of deprecated unnamed POSIX semaphores.</p></li>
+<ul><li><p>Create static archives with portable <code>ar</code> options accepted by GNU and Darwin toolchains.</p></li>
+<li><p>Use a pthread mutex-and-condition counter for the hash compressor on Darwin instead of deprecated unnamed POSIX semaphores.</p></li>
 <li><p>Stop forcing the POSIX limits header into every imported C source because its Darwin <code>NZERO</code> macro conflicts with the hash generator under <code>-Werror</code>.</p></li>
 <li><p>Probe GCC-only C tuning and warning flags separately from C++ tuning flags so Apple Clang can compile imported hash-generation sources under <code>-Werror</code>.</p></li>
 <li><p>Use the portable POSIX limits header for imported metrics compilation on macOS.</p></li>
