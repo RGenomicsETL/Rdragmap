@@ -2,6 +2,9 @@
 
 ## Rdragmap 0.0.0.9000
 
+- Fix Apple Clang compilation for imported alignment extent and iterator
+  initialization.
+
 - Build against the R-universe macOS Boost bundle and use POSIX and
   Darwin facilities where the imported Linux implementation was not
   portable.
