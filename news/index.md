@@ -2,6 +2,10 @@
 
 ## Rdragmap 0.0.0.9000
 
+- Probe GCC-only C tuning and warning flags separately from C++ tuning
+  flags so Apple Clang can compile imported hash-generation sources
+  under `-Werror`.
+
 - Use the portable POSIX limits header for imported metrics compilation
   on macOS.
 
