@@ -74,7 +74,9 @@ rdragmap_align(
 
 - mmap_reference:
 
-  Whether to memory-map the decompressed reference.
+  Whether to memory-map the uncompressed hash, extension, and reference
+  files. The index must have been built with `write_uncompressed = TRUE`
+  or otherwise contain `hash_table.bin` and `extend_table.bin`.
 
 ## Value
 
@@ -105,10 +107,10 @@ if (!rdragmap_is_error(built)) {
   if (!rdragmap_is_error(aligned)) aligned@outputs
 }
 #> $sam
-#> [1] "/tmp/Rtmpv9ezVe/rdragmap-example-202764003938/example.sam"
+#> [1] "/tmp/RtmpjLi2BG/rdragmap-example-200f620a8dfe/example.sam"
 #> 
 #> $mapping_metrics
-#> [1] "/tmp/Rtmpv9ezVe/rdragmap-example-202764003938/example.mapping_metrics.csv"
+#> [1] "/tmp/RtmpjLi2BG/rdragmap-example-200f620a8dfe/example.mapping_metrics.csv"
 #> 
 unlink(work, recursive = TRUE, force = TRUE)
 # }

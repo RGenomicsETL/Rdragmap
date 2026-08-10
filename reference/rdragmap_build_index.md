@@ -2,8 +2,9 @@
 
 Runs the package-owned `dragen-os` hash-table generator once. The output
 directory must not already exist; its parent must exist. The returned
-index contains the compressed hash table used by
-[`rdragmap_align()`](https://rgenomicsetl.github.io/Rdragmap/reference/rdragmap_align.md).
+index always contains the compressed hash table. It can also retain the
+much larger uncompressed hash and extension tables required for
+memory-mapped alignment.
 
 ## Usage
 
@@ -19,7 +20,8 @@ rdragmap_build_index(
   seed_interval = 1,
   mask_bed = character(),
   decoys = character(),
-  max_multi_base_seeds = integer()
+  max_multi_base_seeds = integer(),
+  write_uncompressed = FALSE
 )
 ```
 
@@ -73,6 +75,13 @@ rdragmap_build_index(
   Empty or one non-negative maximum passed to
   `--ht-max-multi-base-seeds`.
 
+- write_uncompressed:
+
+  Whether to retain `hash_table.bin` and `extend_table.bin`. These files
+  require substantially more disk space but permit
+  `rdragmap_align(mmap_reference = TRUE)` without decompressing the hash
+  table for every alignment process.
+
 ## Value
 
 `RdragmapIndexBuildResult` or an `RdragmapErrorValue`.
@@ -91,7 +100,7 @@ built <- rdragmap_build_index(
 )
 if (!rdragmap_is_error(built)) built@index
 #> <Rdragmap::RdragmapIndex>
-#>  @ directory: chr "/tmp/Rtmpv9ezVe/rdragmap-example-202729b39188/index"
+#>  @ directory: chr "/tmp/RtmpjLi2BG/rdragmap-example-200f3739f8d8/index"
 unlink(work, recursive = TRUE, force = TRUE)
 # }
 ```

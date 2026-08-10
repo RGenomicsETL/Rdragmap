@@ -115,7 +115,10 @@ insert-size parameters from the input.</p></dd>
 
 
 <dt id="arg-mmap-reference">mmap_reference<a class="anchor" aria-label="anchor" href="#arg-mmap-reference"></a></dt>
-<dd><p>Whether to memory-map the decompressed reference.</p></dd>
+<dd><p>Whether to memory-map the uncompressed hash, extension,
+and reference files. The index must have been built with
+<code>write_uncompressed = TRUE</code> or otherwise contain <code>hash_table.bin</code> and
+<code>extend_table.bin</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -147,10 +150,10 @@ insert-size parameters from the input.</p></dd>
 <span class="r-in"><span>  <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="rdragmap_is_error.html">rdragmap_is_error</a></span><span class="op">(</span><span class="va">aligned</span><span class="op">)</span><span class="op">)</span> <span class="va">aligned</span><span class="op">@</span><span class="va">outputs</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $sam</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/Rtmpv9ezVe/rdragmap-example-202764003938/example.sam"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpjLi2BG/rdragmap-example-200f620a8dfe/example.sam"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $mapping_metrics</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/Rtmpv9ezVe/rdragmap-example-202764003938/example.mapping_metrics.csv"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpjLi2BG/rdragmap-example-200f620a8dfe/example.mapping_metrics.csv"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="va">work</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span>, force <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>

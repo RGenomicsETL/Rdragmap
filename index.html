@@ -70,7 +70,8 @@
 <span>  reference_fasta <span class="op">=</span> <span class="st">"/data/reference.fa"</span>,</span>
 <span>  index_directory <span class="op">=</span> <span class="st">"/data/reference.rdragmap"</span>,</span>
 <span>  executables <span class="op">=</span> <span class="va">native</span>,</span>
-<span>  threads <span class="op">=</span> <span class="fl">2L</span></span>
+<span>  threads <span class="op">=</span> <span class="fl">2L</span>,</span>
+<span>  write_uncompressed <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="reference/rdragmap_is_error.html">rdragmap_is_error</a></span><span class="op">(</span><span class="va">built</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Align single-end or paired FASTQ. SAM, native mapping metrics, and, for paired input, insert-size statistics are written beside <code>output_sam</code>.</p>
@@ -83,9 +84,18 @@
 <span>  executables <span class="op">=</span> <span class="va">native</span>,</span>
 <span>  read_group_id <span class="op">=</span> <span class="st">"sample-1"</span>,</span>
 <span>  sample_name <span class="op">=</span> <span class="st">"sample-1"</span>,</span>
-<span>  threads <span class="op">=</span> <span class="fl">2L</span></span>
+<span>  threads <span class="op">=</span> <span class="fl">2L</span>,</span>
+<span>  mmap_reference <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="reference/rdragmap_is_error.html">rdragmap_is_error</a></span><span class="op">(</span><span class="va">aligned</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="compressed-and-memory-mapped-indexes">Compressed and memory-mapped indexes<a class="anchor" aria-label="anchor" href="#compressed-and-memory-mapped-indexes"></a>
+</h2>
+<p>The default <code>write_uncompressed = FALSE</code> keeps only <code>hash_table.cmp</code> and minimizes persistent index size. Each alignment process then decompresses the hash table into private memory before mapping.</p>
+<p>Set <code>write_uncompressed = TRUE</code> when building an index that will be reused. It also retains <code>hash_table.bin</code> and <code>extend_table.bin</code>; passing <code>mmap_reference = TRUE</code> to <code><a href="reference/rdragmap_align.html">rdragmap_align()</a></code> maps those files directly. This avoids per-process hash decompression and allows the operating system to share cached index pages between processes. The tradeoff is disk space. For the executed hs37d5 index, the two additional files occupy about 30 GiB, compared with a 4.0 GiB compressed hash table.</p>
+<p>An index without both uncompressed files is rejected before starting a memory-mapped alignment. The ordinary compressed path remains available from the same index.</p>
+<p>On the documented HG02088 full-exome run, the memory-mapped path reduced wall time from 193.35 to 150.55 seconds and aggregate CPU time from 2767.80 to 1949.76 seconds. This is one measured host and workload, not a general speedup claim; see the parent repository’s <a href="../benchmarks/hs37d5-hg02088/README.html"><code>benchmarks/hs37d5-hg02088</code></a> record.</p>
 </div>
 <div class="section level2">
 <h2 id="installed-miniature-example">Installed miniature example<a class="anchor" aria-label="anchor" href="#installed-miniature-example"></a>

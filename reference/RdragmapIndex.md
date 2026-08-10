@@ -5,7 +5,8 @@ A reference index produced by
 or validated by
 [`rdragmap_index()`](https://rgenomicsetl.github.io/Rdragmap/reference/rdragmap_index.md).
 It records an absolute directory containing the native DRAGMAP v8
-reference, compressed hash table, and binary configuration.
+reference, compressed hash table, and binary configuration. An index may
+additionally retain uncompressed tables for memory-mapped alignment.
 
 ## Usage
 

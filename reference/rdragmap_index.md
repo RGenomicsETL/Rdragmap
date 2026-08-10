@@ -1,8 +1,9 @@
 # Validate a DRAGMAP v8 reference-index directory
 
 The directory must contain `hash_table.cfg.bin`, `hash_table.cmp`, and
-`reference.bin`. These are the files used by the packaged executable
-when it loads its compressed reference index.
+`reference.bin`. An index built with `write_uncompressed = TRUE` also
+contains `hash_table.bin` and `extend_table.bin` for
+`mmap_reference = TRUE` alignment.
 
 ## Usage
 
