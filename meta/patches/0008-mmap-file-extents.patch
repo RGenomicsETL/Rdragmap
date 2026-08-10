@@ -1,0 +1,23 @@
+# Rdragmap patch: memory-mapped index file extents
+# Base: 9f27ffbb22c613011b1e6c9b8b3901f05db34c50
+# Purpose: retain each mapped index file's own extent in its deleter instead of
+# unmapping reference.bin and extend_table.bin with the hash-table extent.
+# Regression: build a package-owned 16 MiB tiny index with uncompressed tables,
+# align through mmap_reference, and require the child to return normally after
+# writing SAM and metrics; the imported deleter unmapped 16 MiB for the 164352
+# byte tiny reference mapping and then terminated with SIGSEGV.
+
+diff --git a/src/lib/reference/ReferenceDir.cpp b/src/lib/reference/ReferenceDir.cpp
+index e5f0fea..cf46292 100644
+--- a/src/lib/reference/ReferenceDir.cpp
++++ b/src/lib/reference/ReferenceDir.cpp
+@@ -208,7 +208,8 @@ std::unique_ptr<T, std::function<void(T*)>> ReferenceDir7::mmapData(
+         IoException(errno, std::string("ERROR: failed to map hashtable data file ") + dataFile.string()));
+   }
+   return std::unique_ptr<T, std::function<void(T*)>>(
+-      reinterpret_cast<T*>(table), [this](T* p) -> void { munmap(p, hashtableConfig_.getHashtableBytes()); });
++      reinterpret_cast<T*>(table),
++      [expectedBinFileBytes](T* p) -> void { munmap(p, expectedBinFileBytes); });
+ }
+ 
+ template <typename T>

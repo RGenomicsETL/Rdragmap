@@ -12,5 +12,6 @@ RdragmapIndex(directory = character(0))
 \description{
 A reference index produced by \code{rdragmap_build_index()} or validated by
 \code{rdragmap_index()}. It records an absolute directory containing the native
-DRAGMAP v8 reference, compressed hash table, and binary configuration.
+DRAGMAP v8 reference, compressed hash table, and binary configuration. An
+index may additionally retain uncompressed tables for memory-mapped alignment.
 }

@@ -10,11 +10,13 @@ run_wrapper_test <- function() {
       "prefix=",
       "build=0",
       "paired=0",
+      "write_uncompressed=0",
       "while [ $# -gt 0 ]; do",
       "  case \"$1\" in",
       "    --build-hash-table) build=1; shift 2 ;;",
       "    --output-directory) out=$2; shift 2 ;;",
       "    --output-file-prefix) prefix=$2; shift 2 ;;",
+      "    --ht-write-hash-bin) write_uncompressed=$2; shift 2 ;;",
       "    -2|--fastq-file2) paired=1; shift 2 ;;",
       "    *) shift ;;",
       "  esac",
@@ -23,6 +25,10 @@ run_wrapper_test <- function() {
       "  for file in hash_table.cfg hash_table.cfg.bin hash_table.cmp hash_table_stats.txt reference.bin ref_index.bin repeat_mask.bin str_table.bin; do",
       "    printf x > \"$out/$file\"",
       "  done",
+      "  if [ \"$write_uncompressed\" -eq 1 ]; then",
+      "    printf x > \"$out/hash_table.bin\"",
+      "    printf x > \"$out/extend_table.bin\"",
+      "  fi",
       "else",
       "  printf sam > \"$out/$prefix.sam\"",
       "  printf metrics > \"$out/$prefix.mapping_metrics.csv\"",
@@ -75,6 +81,41 @@ run_wrapper_test <- function() {
   expect_true(all(file.exists(unlist(aligned@outputs))))
   expect_equal(readLines(output_sam, warn = FALSE), "sam")
 
+  missing_mmap <- rdragmap_align(
+    index = built@index,
+    read1 = read1,
+    output_sam = file.path(root, "missing-mmap.sam"),
+    executables = executables,
+    threads = 1L,
+    mmap_reference = TRUE
+  )
+  expect_true(rdragmap_is_error(missing_mmap))
+  expect_equal(missing_mmap@code, "index_mmap_files_missing")
+  expect_equal(
+    sort(missing_mmap@details$missing),
+    sort(c("hash_table.bin", "extend_table.bin"))
+  )
+
+  mmap_index <- rdragmap_build_index(
+    reference_fasta = reference,
+    index_directory = file.path(root, "mmap-index"),
+    executables = executables,
+    threads = 1L,
+    write_uncompressed = TRUE
+  )
+  expect_true(!rdragmap_is_error(mmap_index))
+  expect_true(all(c("hash", "extension") %in% names(mmap_index@outputs)))
+  expect_true(all(file.exists(unlist(mmap_index@outputs))))
+  mmap_alignment <- rdragmap_align(
+    index = mmap_index@index,
+    read1 = read1,
+    output_sam = file.path(root, "mmap.sam"),
+    executables = executables,
+    threads = 1L,
+    mmap_reference = TRUE
+  )
+  expect_true(!rdragmap_is_error(mmap_alignment))
+
   packaged <- rdragmap_executables()
   expect_true(!rdragmap_is_error(packaged))
   native_index <- rdragmap_build_index(
@@ -82,7 +123,8 @@ run_wrapper_test <- function() {
     index_directory = file.path(root, "native-index"),
     executables = packaged,
     threads = 1L,
-    hash_size = "16MB"
+    hash_size = "16MB",
+    write_uncompressed = TRUE
   )
   expect_true(!rdragmap_is_error(native_index))
   native_alignment <- rdragmap_align(
@@ -93,11 +135,30 @@ run_wrapper_test <- function() {
     read_group_id = "tiny",
     sample_name = "tiny",
     threads = 1L,
-    enable_sampling = FALSE
+    enable_sampling = FALSE,
+    mmap_reference = TRUE
   )
   expect_true(!rdragmap_is_error(native_alignment))
   expect_true(file.exists(native_alignment@outputs$sam))
-  expect_true(length(readLines(native_alignment@outputs$sam, warn = FALSE)) > 1L)
+  mmap_sam <- readLines(native_alignment@outputs$sam, warn = FALSE)
+  expect_true(length(mmap_sam) > 1L)
+
+  compressed_alignment <- rdragmap_align(
+    index = native_index@index,
+    read1 = system.file("extdata", "one.fastq", package = "Rdragmap"),
+    output_sam = file.path(root, "native-compressed.sam"),
+    executables = packaged,
+    read_group_id = "tiny",
+    sample_name = "tiny",
+    threads = 1L,
+    enable_sampling = FALSE
+  )
+  expect_true(!rdragmap_is_error(compressed_alignment))
+  compressed_sam <- readLines(compressed_alignment@outputs$sam, warn = FALSE)
+  expect_equal(
+    grep("^@", mmap_sam, invert = TRUE, value = TRUE),
+    grep("^@", compressed_sam, invert = TRUE, value = TRUE)
+  )
 
   missing <- rdragmap_executables(directory = file.path(root, "missing-bin"))
   expect_true(rdragmap_is_error(missing))

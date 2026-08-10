@@ -1,8 +1,8 @@
 #' Validate a DRAGMAP v8 reference-index directory
 #'
 #' The directory must contain `hash_table.cfg.bin`, `hash_table.cmp`, and
-#' `reference.bin`. These are the files used by the packaged executable when it
-#' loads its compressed reference index.
+#' `reference.bin`. An index built with `write_uncompressed = TRUE` also contains
+#' `hash_table.bin` and `extend_table.bin` for `mmap_reference = TRUE` alignment.
 #'
 #' @param directory Absolute reference-index directory.
 #' @return `RdragmapIndex` or an `RdragmapInputErrorValue`.
@@ -45,7 +45,8 @@ rdragmap_index <- function(directory) {
 #'
 #' Runs the package-owned `dragen-os` hash-table generator once. The output
 #' directory must not already exist; its parent must exist. The returned index
-#' contains the compressed hash table used by `rdragmap_align()`.
+#' always contains the compressed hash table. It can also retain the much larger
+#' uncompressed hash and extension tables required for memory-mapped alignment.
 #'
 #' @param reference_fasta Absolute FASTA path.
 #' @param index_directory Absolute, not-yet-existing output directory.
@@ -62,6 +63,10 @@ rdragmap_index <- function(directory) {
 #' @param decoys Empty or one absolute FASTA path passed to `--ht-decoys`.
 #' @param max_multi_base_seeds Empty or one non-negative maximum passed to
 #'   `--ht-max-multi-base-seeds`.
+#' @param write_uncompressed Whether to retain `hash_table.bin` and
+#'   `extend_table.bin`. These files require substantially more disk space but
+#'   permit `rdragmap_align(mmap_reference = TRUE)` without decompressing the
+#'   hash table for every alignment process.
 #' @return `RdragmapIndexBuildResult` or an `RdragmapErrorValue`.
 #' @examples
 #' \donttest{
@@ -88,7 +93,8 @@ rdragmap_build_index <- function(
   seed_interval = 1,
   mask_bed = character(),
   decoys = character(),
-  max_multi_base_seeds = integer()
+  max_multi_base_seeds = integer(),
+  write_uncompressed = FALSE
 ) {
   .rdm_contract_call(
     code = "invalid_index_build_request",
@@ -103,6 +109,10 @@ rdragmap_build_index <- function(
       threads <- .rdm_assert_integer(threads, "threads", 1L, .Machine$integer.max)
       hash_size <- .rdm_assert_size(hash_size, "hash_size")
       memory_limit <- .rdm_assert_size(memory_limit, "memory_limit")
+      write_uncompressed <- .rdm_assert_flag(
+        write_uncompressed,
+        "write_uncompressed"
+      )
       seed_length <- .rdm_assert_integer(
         seed_length,
         "seed_length",
@@ -165,15 +175,23 @@ rdragmap_build_index <- function(
         add = TRUE
       )
 
-      outputs <- list(
-        config_text = file.path(index_directory, "hash_table.cfg"),
-        config = file.path(index_directory, "hash_table.cfg.bin"),
-        compressed_hash = file.path(index_directory, "hash_table.cmp"),
-        statistics = file.path(index_directory, "hash_table_stats.txt"),
-        reference = file.path(index_directory, "reference.bin"),
-        reference_index = file.path(index_directory, "ref_index.bin"),
-        repeat_mask = file.path(index_directory, "repeat_mask.bin"),
-        strings = file.path(index_directory, "str_table.bin")
+      outputs <- c(
+        list(
+          config_text = file.path(index_directory, "hash_table.cfg"),
+          config = file.path(index_directory, "hash_table.cfg.bin"),
+          compressed_hash = file.path(index_directory, "hash_table.cmp"),
+          statistics = file.path(index_directory, "hash_table_stats.txt"),
+          reference = file.path(index_directory, "reference.bin"),
+          reference_index = file.path(index_directory, "ref_index.bin"),
+          repeat_mask = file.path(index_directory, "repeat_mask.bin"),
+          strings = file.path(index_directory, "str_table.bin")
+        ),
+        if (write_uncompressed) {
+          list(
+            hash = file.path(index_directory, "hash_table.bin"),
+            extension = file.path(index_directory, "extend_table.bin")
+          )
+        }
       )
       arguments <- c(
         "--build-hash-table", "true",
@@ -182,6 +200,7 @@ rdragmap_build_index <- function(
         "--ht-num-threads", as.character(threads),
         "--ht-size", hash_size,
         "--ht-mem-limit", memory_limit,
+        "--ht-write-hash-bin", as.character(as.integer(write_uncompressed)),
         "--ht-seed-len", as.character(seed_length),
         "--ht-ref-seed-interval", format(seed_interval, scientific = FALSE, trim = TRUE),
         if (length(mask_bed)) c("--ht-mask-bed", mask_bed),

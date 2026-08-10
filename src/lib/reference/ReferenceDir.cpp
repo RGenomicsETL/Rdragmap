@@ -208,7 +208,8 @@ std::unique_ptr<T, std::function<void(T*)>> ReferenceDir7::mmapData(
         IoException(errno, std::string("ERROR: failed to map hashtable data file ") + dataFile.string()));
   }
   return std::unique_ptr<T, std::function<void(T*)>>(
-      reinterpret_cast<T*>(table), [this](T* p) -> void { munmap(p, hashtableConfig_.getHashtableBytes()); });
+      reinterpret_cast<T*>(table),
+      [expectedBinFileBytes](T* p) -> void { munmap(p, expectedBinFileBytes); });
 }
 
 template <typename T>

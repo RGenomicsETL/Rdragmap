@@ -257,11 +257,24 @@
   reference = "reference.bin"
 )
 
-.rdm_index_missing_files <- function(directory) {
-  names(.rdm_index_files)[
-    !file.exists(file.path(directory, unname(.rdm_index_files))) |
-      dir.exists(file.path(directory, unname(.rdm_index_files)))
+.rdm_mmap_index_files <- c(
+  hash = "hash_table.bin",
+  extension = "extend_table.bin"
+)
+
+.rdm_missing_index_files <- function(directory, files) {
+  names(files)[
+    !file.exists(file.path(directory, unname(files))) |
+      dir.exists(file.path(directory, unname(files)))
   ]
+}
+
+.rdm_index_missing_files <- function(directory) {
+  .rdm_missing_index_files(directory, .rdm_index_files)
+}
+
+.rdm_index_missing_mmap_files <- function(directory) {
+  .rdm_missing_index_files(directory, .rdm_mmap_index_files)
 }
 
 .rdm_require_executable <- function(path, operation) {

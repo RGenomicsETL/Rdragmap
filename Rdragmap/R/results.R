@@ -2,7 +2,8 @@
 #'
 #' A reference index produced by `rdragmap_build_index()` or validated by
 #' `rdragmap_index()`. It records an absolute directory containing the native
-#' DRAGMAP v8 reference, compressed hash table, and binary configuration.
+#' DRAGMAP v8 reference, compressed hash table, and binary configuration. An
+#' index may additionally retain uncompressed tables for memory-mapped alignment.
 #'
 #' @param directory Absolute reference-index directory.
 #' @export

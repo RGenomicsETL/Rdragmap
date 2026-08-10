@@ -1,5 +1,12 @@
 # Rdragmap 0.0.0.9000
 
+- Add `write_uncompressed` index generation and a validated end-to-end
+  `mmap_reference` workflow, with an explicit disk-space tradeoff and a clear
+  error when required uncompressed tables are absent.
+
+- Unmap each memory-mapped index file using its validated extent, preventing a
+  teardown crash exposed by the package's small real mmap workflow.
+
 - Create static archives with portable `ar` options accepted by GNU and Darwin
   toolchains.
 

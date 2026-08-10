@@ -50,6 +50,7 @@ untouched oracle own mapping compatibility.
 | Tiny SAM differential | Passed | Untouched and current outputs matched after normalizing only admitted `@PG` and `@RG` corrections. |
 | hs37d5 hash artifacts | Passed | `hash_table.cmp`, `reference.bin`, `ref_index.bin`, `repeat_mask.bin`, and `str_table.bin` were byte-identical; table, hash, and extension digests matched. |
 | Cross-index consumption | Passed | Untouched DRAGMAP decompressed and mapped with the Rdragmap-generated hs37d5 index. |
+| Memory-mapped index | Passed | The package built and mapped a real tiny uncompressed index without the imported teardown crash; the full HG02088 mmap benchmark completed with matching record counts. |
 | Real exome prefix | Passed | All normalized SAM bytes matched for 100,000 HG02088 pairs. |
 | Complete real exome | Passed | All 10,110,535 HG02088 pairs produced normalized SHA-256 `2d84277058d45dd99861a39dbe55ad7c99be7477bce8c3a6cd9cbd3e5e735d60` with both binaries. |
 | Mapping-metrics corrections | Passed | Five focused tests pass; a corrected 100,000-pair run reports 444 of 199,412 mapped paired reads on different chromosomes instead of the erroneous 100%. |

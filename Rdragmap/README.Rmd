@@ -45,7 +45,8 @@ built <- rdragmap_build_index(
   reference_fasta = "/data/reference.fa",
   index_directory = "/data/reference.rdragmap",
   executables = native,
-  threads = 2L
+  threads = 2L,
+  write_uncompressed = TRUE
 )
 stopifnot(!rdragmap_is_error(built))
 ```
@@ -62,10 +63,35 @@ aligned <- rdragmap_align(
   executables = native,
   read_group_id = "sample-1",
   sample_name = "sample-1",
-  threads = 2L
+  threads = 2L,
+  mmap_reference = TRUE
 )
 stopifnot(!rdragmap_is_error(aligned))
 ```
+
+## Compressed and memory-mapped indexes
+
+The default `write_uncompressed = FALSE` keeps only `hash_table.cmp` and
+minimizes persistent index size. Each alignment process then decompresses the
+hash table into private memory before mapping.
+
+Set `write_uncompressed = TRUE` when building an index that will be reused. It
+also retains `hash_table.bin` and `extend_table.bin`; passing
+`mmap_reference = TRUE` to `rdragmap_align()` maps those files directly. This
+avoids per-process hash decompression and allows the operating system to share
+cached index pages between processes. The tradeoff is disk space. For the
+executed hs37d5 index, the two additional files occupy about 30 GiB, compared
+with a 4.0 GiB compressed hash table.
+
+An index without both uncompressed files is rejected before starting a
+memory-mapped alignment. The ordinary compressed path remains available from
+the same index.
+
+On the documented HG02088 full-exome run, the memory-mapped path reduced wall
+time from 193.35 to 150.55 seconds and aggregate CPU time from 2767.80 to
+1949.76 seconds. This is one measured host and workload, not a general speedup
+claim; see the parent repository's
+[`benchmarks/hs37d5-hg02088`](../benchmarks/hs37d5-hg02088/README.md) record.
 
 ## Installed miniature example
 

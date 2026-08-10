@@ -14,6 +14,6 @@ rdragmap_index(directory)
 }
 \description{
 The directory must contain \code{hash_table.cfg.bin}, \code{hash_table.cmp}, and
-\code{reference.bin}. These are the files used by the packaged executable when it
-loads its compressed reference index.
+\code{reference.bin}. An index built with \code{write_uncompressed = TRUE} also contains
+\code{hash_table.bin} and \code{extend_table.bin} for \code{mmap_reference = TRUE} alignment.
 }

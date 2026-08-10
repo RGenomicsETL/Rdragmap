@@ -44,7 +44,10 @@ insert-size parameters from the input.}
 
 \item{preserve_order}{Whether to preserve deterministic map/align order.}
 
-\item{mmap_reference}{Whether to memory-map the decompressed reference.}
+\item{mmap_reference}{Whether to memory-map the uncompressed hash, extension,
+and reference files. The index must have been built with
+\code{write_uncompressed = TRUE} or otherwise contain \code{hash_table.bin} and
+\code{extend_table.bin}.}
 }
 \value{
 \code{RdragmapAlignmentResult} or an \code{RdragmapErrorValue}.

@@ -1,0 +1,10 @@
+phase,workload,implementation,index_path,wall_seconds,user_cpu_seconds,system_cpu_seconds,cpu_utilization_percent,peak_rss_kib
+hash-build,hs37d5,untouched 4f98e00,compressed output,418.60,3514.02,246.69,898,60671092
+hash-build,hs37d5,Rdragmap b7c5756,compressed output,461.11,3499.04,232.96,809,61902868
+mapping,100000-pair prefix,untouched 4f98e00,compressed,59.98,910.16,18.10,,37937760
+mapping,100000-pair prefix,Rdragmap b7c5756,compressed,59.70,912.12,18.50,,37936960
+mapping,complete exome,untouched 4f98e00,compressed,194.17,2787.12,20.77,1446,37936960
+mapping,complete exome,Rdragmap b7c5756,compressed,193.35,2746.79,21.01,1431,37937280
+mapping,complete exome,Rdragmap 9f27ffb,mmap,150.55,1945.88,3.88,1295,35753248
+mapping,100000-pair prefix,Rdragmap 9f27ffb,mmap first run,36.15,12.78,8.17,57,32420732
+mapping,100000-pair prefix,Rdragmap 9f27ffb,mmap page-cache resident,12.18,10.83,1.51,101,32511732

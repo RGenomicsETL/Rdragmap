@@ -15,7 +15,8 @@ rdragmap_build_index(
   seed_interval = 1,
   mask_bed = character(),
   decoys = character(),
-  max_multi_base_seeds = integer()
+  max_multi_base_seeds = integer(),
+  write_uncompressed = FALSE
 )
 }
 \arguments{
@@ -44,6 +45,11 @@ requests the native automatic limit.}
 
 \item{max_multi_base_seeds}{Empty or one non-negative maximum passed to
 \code{--ht-max-multi-base-seeds}.}
+
+\item{write_uncompressed}{Whether to retain \code{hash_table.bin} and
+\code{extend_table.bin}. These files require substantially more disk space but
+permit \code{rdragmap_align(mmap_reference = TRUE)} without decompressing the
+hash table for every alignment process.}
 }
 \value{
 \code{RdragmapIndexBuildResult} or an \code{RdragmapErrorValue}.
@@ -51,7 +57,8 @@ requests the native automatic limit.}
 \description{
 Runs the package-owned \code{dragen-os} hash-table generator once. The output
 directory must not already exist; its parent must exist. The returned index
-contains the compressed hash table used by \code{rdragmap_align()}.
+always contains the compressed hash table. It can also retain the much larger
+uncompressed hash and extension tables required for memory-mapped alignment.
 }
 \examples{
 \donttest{

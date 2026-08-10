@@ -18,7 +18,10 @@
 #' @param enable_sampling Whether the native program estimates paired-end
 #'   insert-size parameters from the input.
 #' @param preserve_order Whether to preserve deterministic map/align order.
-#' @param mmap_reference Whether to memory-map the decompressed reference.
+#' @param mmap_reference Whether to memory-map the uncompressed hash, extension,
+#'   and reference files. The index must have been built with
+#'   `write_uncompressed = TRUE` or otherwise contain `hash_table.bin` and
+#'   `extend_table.bin`.
 #' @return `RdragmapAlignmentResult` or an `RdragmapErrorValue`.
 #' @examples
 #' \donttest{
@@ -83,6 +86,23 @@ rdragmap_align <- function(
       enable_sampling <- .rdm_assert_flag(enable_sampling, "enable_sampling")
       preserve_order <- .rdm_assert_flag(preserve_order, "preserve_order")
       mmap_reference <- .rdm_assert_flag(mmap_reference, "mmap_reference")
+      if (mmap_reference) {
+        missing <- .rdm_index_missing_mmap_files(index@directory)
+        if (length(missing)) {
+          return(rdragmap_error_value(
+            message = paste0(
+              "memory-mapped alignment requires uncompressed index files: ",
+              paste(unname(.rdm_mmap_index_files[missing]), collapse = ", ")
+            ),
+            kind = "input",
+            code = "index_mmap_files_missing",
+            details = list(
+              directory = index@directory,
+              missing = unname(.rdm_mmap_index_files[missing])
+            )
+          ))
+        }
+      }
 
       prefix <- .rdm_output_prefix(output_sam)
       output_directory <- dirname(output_sam)

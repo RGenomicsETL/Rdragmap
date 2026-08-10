@@ -1,0 +1,4 @@
+pair_count,index_path,phase,requested_mapper_threads,peak_live_threads,elapsed_seconds,mean_core_equivalents,median_core_equivalents,p05_core_equivalents,p95_core_equivalents,mean_threads_ge_10pct,mean_threads_ge_50pct,mean_runqueue_core_equivalents,p95_runqueue_core_equivalents
+10110535,compressed,index_load,16,21,59.923,15.659,18.951,0.643,19.773,16.824,16.378,0.668,1.236
+10110535,compressed,mapping,16,32,142.728,13.011,14.998,1.134,16.001,13.609,12.975,0.044,0.078
+10110535,mmap,mapping,16,32,172.701,10.871,14.020,0.407,16.000,11.471,10.759,0.020,0.056
