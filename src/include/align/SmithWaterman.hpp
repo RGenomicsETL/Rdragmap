@@ -73,8 +73,8 @@ public:
       globalMax_(0),
       cell_gte_last_next_({std::numeric_limits<int>::max(), std::numeric_limits<int>::min()}),
       //    finalMax_(0), finalMaxScore_(0), finalMaxOffset_(-1),
-      databaseBeginIt_(0),
-      databaseEndIt_(0),
+      databaseBeginIt_(),
+      databaseEndIt_(),
       drift_(0)
   {
   }

@@ -1,0 +1,37 @@
+# Rdragmap patch: Apple Clang alignment portability
+# Base: fffa2428a592c940c1d07628fa7b3fd4984012fa
+# Purpose: give the imported ungapped aligner an explicit common extent type
+# and value-initialize Smith-Waterman vector iterators, which Apple libc++ does
+# not permit to be constructed from a null integer.
+# Regression: `make clean && make HAS_GTEST=0 DRAGMAP_HAVE_AVX2=0`,
+# `make clean && make HAS_GTEST=0`, and the macOS `R CMD check --no-manual`
+# package job compile the affected translation unit.
+
+diff --git a/src/include/align/SmithWaterman.hpp b/src/include/align/SmithWaterman.hpp
+index 52f6b87..da9ab00 100644
+--- a/src/include/align/SmithWaterman.hpp
++++ b/src/include/align/SmithWaterman.hpp
+@@ -73,8 +73,8 @@ public:
+       globalMax_(0),
+       cell_gte_last_next_({std::numeric_limits<int>::max(), std::numeric_limits<int>::min()}),
+       //    finalMax_(0), finalMaxScore_(0), finalMaxOffset_(-1),
+-      databaseBeginIt_(0),
+-      databaseEndIt_(0),
++      databaseBeginIt_(),
++      databaseEndIt_(),
+       drift_(0)
+   {
+   }
+diff --git a/src/lib/align/Aligner.cpp b/src/lib/align/Aligner.cpp
+index 6db5d24..c3e5d3f 100644
+--- a/src/lib/align/Aligner.cpp
++++ b/src/lib/align/Aligner.cpp
+@@ -234,7 +234,7 @@ int Aligner::initializeUngappedAlignmentScores(
+   auto refCoords                                  = htConfig_.convertToReferenceCoordinates(referenceOffset);
+   const reference::HashtableConfig::Sequence& seq = htConfig_.getSequences().at(refCoords.first);
+   const auto                                  posRange = htConfig_.getPositionRange(seq);
+-  const int seqLeft = std::min(readBases.size(), posRange.second - referenceOffset);
++  const int seqLeft = static_cast<int>(std::min<uint64_t>(readBases.size(), posRange.second - referenceOffset));
+ 
+   Database databaseSeqLeft;
+   databaseSeqLeft.reserve(seqLeft + 1);

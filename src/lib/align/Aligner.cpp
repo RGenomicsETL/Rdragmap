@@ -234,7 +234,7 @@ int Aligner::initializeUngappedAlignmentScores(
   auto refCoords                                  = htConfig_.convertToReferenceCoordinates(referenceOffset);
   const reference::HashtableConfig::Sequence& seq = htConfig_.getSequences().at(refCoords.first);
   const auto                                  posRange = htConfig_.getPositionRange(seq);
-  const int seqLeft = std::min(readBases.size(), posRange.second - referenceOffset);
+  const int seqLeft = static_cast<int>(std::min<uint64_t>(readBases.size(), posRange.second - referenceOffset));
 
   Database databaseSeqLeft;
   databaseSeqLeft.reserve(seqLeft + 1);
